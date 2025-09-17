@@ -22,6 +22,7 @@ import {
   isValidSize,
   roundPrice,
   roundSize,
+  randomIntRange,
 } from "./utils";
 
 export class OrderManager {
@@ -248,8 +249,11 @@ export class OrderManager {
         // Place short-term order
         const currentBlock =
           await this.compositeClient.validatorClient.get.latestBlockHeight();
+        const goodTilBlocks = config.orderConfig.goodTilBlocks || 20;
+
         const goodTilBlock =
-          currentBlock + (config.orderConfig.goodTilBlocks || 20);
+          currentBlock +
+          randomIntRange(Math.floor(goodTilBlocks / 2), goodTilBlocks);
         // const goodTilBlock = config.orderConfig.goodTilBlocks || 20;
 
         tx = await this.compositeClient.placeShortTermOrder(
@@ -285,8 +289,11 @@ export class OrderManager {
         // const goodTilTimeInSeconds =
         //   Math.floor(Date.now() / 1000) +
         //   (config.orderConfig.goodTilTimeSeconds || 300);
-        const goodTilTimeInSeconds =
-          config.orderConfig.goodTilTimeSeconds || 300;
+        let goodTilTimeInSeconds = config.orderConfig.goodTilTimeSeconds || 300;
+        goodTilTimeInSeconds = randomIntRange(
+          Math.floor(goodTilTimeInSeconds / 2),
+          goodTilTimeInSeconds
+        );
 
         // console.log(
         //   `✅ Placing LONG-TERM ${side} order: ${roundedSize} ${marketId} at ${roundedPrice} (Client ID: ${clientId}, GTT: ${goodTilTimeInSeconds})`

@@ -7,6 +7,10 @@ export function randomInt(n: number): number {
   return Math.floor(Math.random() * n);
 }
 
+export function randomIntRange(min: number, max: number): number {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
 /**
  * Generate a random clientId for orders.
  */
