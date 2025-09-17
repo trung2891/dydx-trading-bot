@@ -48,6 +48,9 @@ export class OrderManager {
     const batchSize = config.orderConfig.batchSize || 1;
     const batchDelay = config.orderConfig.batchDelay || 100;
 
+    // Start timing
+    const startTime = Date.now();
+
     try {
       // Calculate order prices
       const { bidPrices, askPrices } = this.calculateOrderPrices(
@@ -110,10 +113,11 @@ export class OrderManager {
         // Batch placement
         for (let i = 0; i < orderRequests.length; i += batchSize) {
           const batch = orderRequests.slice(i, i + batchSize);
+          const batchNumber = Math.floor(i / batchSize) + 1;
+          const batchStartTime = Date.now();
+
           console.log(
-            `📦 Processing batch ${Math.floor(i / batchSize) + 1} with ${
-              batch.length
-            } orders`
+            `📦 Processing batch ${batchNumber} with ${batch.length} orders`
           );
 
           // Place orders in parallel within the batch
@@ -129,10 +133,14 @@ export class OrderManager {
 
           try {
             const batchResults = await Promise.allSettled(batchPromises);
+            const batchEndTime = Date.now();
+            const batchTime = batchEndTime - batchStartTime;
 
+            let batchSuccessCount = 0;
             batchResults.forEach((result, index) => {
               if (result.status === "fulfilled" && result.value) {
                 placedOrders.push(result.value);
+                batchSuccessCount++;
               } else if (result.status === "rejected") {
                 const request = batch[index];
                 console.error(
@@ -141,6 +149,15 @@ export class OrderManager {
                 );
               }
             });
+
+            // Log batch completion with timing
+            console.log(
+              `✅ Batch ${batchNumber} completed: ${batchSuccessCount}/${
+                batch.length
+              } orders in ${batchTime}ms (${(batchTime / batch.length).toFixed(
+                1
+              )}ms/order)`
+            );
 
             // Add delay between batches (except for the last batch)
             if (i + batchSize < orderRequests.length && batchDelay > 0) {
@@ -156,9 +173,32 @@ export class OrderManager {
         }
       }
 
+      // Calculate timing
+      const endTime = Date.now();
+      const totalTime = endTime - startTime;
+      const avgTimePerOrder =
+        orderRequests.length > 0 ? totalTime / orderRequests.length : 0;
+
       console.log(
         `✅ Placed ${placedOrders.length}/${orderRequests.length} orders for ${marketId}`
       );
+      console.log(
+        `⏱️  Total time: ${totalTime}ms | Avg per order: ${avgTimePerOrder.toFixed(
+          1
+        )}ms | Batch size: ${batchSize}`
+      );
+
+      // Log performance summary
+      if (batchSize > 1) {
+        const batchCount = Math.ceil(orderRequests.length / batchSize);
+        const avgTimePerBatch = batchCount > 0 ? totalTime / batchCount : 0;
+        console.log(
+          `📊 Batch performance: ${batchCount} batches | Avg per batch: ${avgTimePerBatch.toFixed(
+            1
+          )}ms`
+        );
+      }
+
       return placedOrders;
     } catch (error) {
       console.error(
@@ -195,8 +235,11 @@ export class OrderManager {
   ): Promise<OrderInfo | null> {
     try {
       const clientId = generateRandomClientId();
-      const roundedPrice = roundPrice(price, 2);
-      const roundedSize = roundSize(size, 4);
+      const roundedPrice = roundPrice(
+        price,
+        config.orderConfig.roundPrice || 3
+      );
+      const roundedSize = roundSize(size, config.orderConfig.roundSize || 4);
 
       let tx: any;
       let orderInfo: OrderInfo;
@@ -552,8 +595,18 @@ export class OrderManager {
 
     for (let i = 0; i < config.priceSteps; i++) {
       const offset = (i + 1) * stepSize;
-      bidPrices.push(roundPrice(midPrice * (1 - (halfSpread + offset) / 100)));
-      askPrices.push(roundPrice(midPrice * (1 + (halfSpread + offset) / 100)));
+      bidPrices.push(
+        roundPrice(
+          midPrice * (1 - (halfSpread + offset) / 100),
+          config.orderConfig.roundPrice || 3
+        )
+      );
+      askPrices.push(
+        roundPrice(
+          midPrice * (1 + (halfSpread + offset) / 100),
+          config.orderConfig.roundPrice || 3
+        )
+      );
     }
 
     return { bidPrices, askPrices };

@@ -205,20 +205,29 @@ export class MarketMakerBot {
    * Refresh orders around current mid price.
    */
   private async refreshOrders(marketData: MarketData): Promise<void> {
+    const refreshStartTime = Date.now();
+
     try {
       console.log(
         `🔄 Refreshing orders for ${this.config.marketId} at mid price $${marketData.midPrice}`
       );
 
       // 1. Cancel existing orders
+      const cancelStartTime = Date.now();
       await this.orderManager.cancelAllOrdersForMarket(
         this.config.marketId,
         this.config
       );
+      const cancelTime = Date.now() - cancelStartTime;
+      console.log(`🗑️  Order cancellation completed in ${cancelTime}ms`);
+
       await sleep(1000); // Wait for cancellations to process
 
       // 2. Sync with exchange to ensure clean state
+      const syncStartTime = Date.now();
       await this.orderManager.syncOrdersWithExchange(this.config.marketId);
+      const syncTime = Date.now() - syncStartTime;
+      console.log(`🔄 Order sync completed in ${syncTime}ms`);
 
       // 3. Place new orders
       const placedOrders = await this.orderManager.placeOrdersAroundMidPrice(
@@ -227,8 +236,14 @@ export class MarketMakerBot {
         this.config
       );
 
+      const totalRefreshTime = Date.now() - refreshStartTime;
       console.log(
         `✅ Refreshed orders: ${placedOrders.length} new orders placed`
+      );
+      console.log(
+        `🕒 Total refresh cycle: ${totalRefreshTime}ms (Cancel: ${cancelTime}ms, Sync: ${syncTime}ms, Place: ${
+          totalRefreshTime - cancelTime - syncTime - 1000
+        }ms)`
       );
     } catch (error) {
       console.error(

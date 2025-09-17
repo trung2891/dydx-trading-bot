@@ -22,6 +22,8 @@ export interface MarketMakerConfig {
     // Batch order settings
     batchSize?: number; // number of orders to place in a single batch (default: 1)
     batchDelay?: number; // milliseconds delay between batches (default: 100)
+    roundPrice?: number; // number of decimal places to round the price (default: 3)
+    roundSize?: number;
   };
   riskParameters: {
     maxDrawdown: number; // maximum allowed drawdown
