@@ -251,7 +251,8 @@ export class OrderManager {
           await this.compositeClient.validatorClient.get.latestBlockHeight();
         const goodTilBlocks = config.orderConfig.goodTilBlocks || 20;
 
-        const goodTilBlock = currentBlock + randomIntRange(2, goodTilBlocks);
+        const goodTilBlock =
+          currentBlock + randomIntRange(goodTilBlocks / 2, goodTilBlocks);
 
         // const goodTilBlock = config.orderConfig.goodTilBlocks || 20;
 
