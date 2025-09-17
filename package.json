@@ -1,0 +1,44 @@
+{
+  "name": "dydx-trading-bot",
+  "version": "1.0.0",
+  "description": "A TypeScript-based trading bot for dYdX",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.mm.json",
+    "build:all": "tsc --skipLibCheck",
+    "dev": "ts-node src/index.ts",
+    "start": "node dist/index.js",
+    "watch": "tsc -p tsconfig.mm.json --watch",
+    "clean": "rm -rf dist",
+    "example": "ts-node src/mm/example.ts",
+    "example:single": "ts-node src/mm/example.ts single",
+    "example:multi": "ts-node src/mm/example.ts multi",
+    "example:dynamic": "ts-node src/mm/example.ts dynamic",
+    "sample:orders": "ts-node src/sample/getOrders.ts",
+    "sample:account": "ts-node src/sample/account_endpoints.ts",
+    "sample:short-term": "ts-node src/sample/short_term_order.ts",
+    "cancel-orders": "ts-node scripts/cancel-orders-simple.ts",
+    "cancel-all-orders": "ts-node scripts/cancel-all-orders.ts",
+    "emergency-cancel": "ts-node scripts/emergency-cancel.ts",
+    "test": "echo 'Market Maker Bot is ready! Create .env file with DYDX_TEST_MNEMONIC and run npm run dev'"
+  },
+  "keywords": [
+    "typescript",
+    "trading",
+    "bot",
+    "dydx"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@dydxprotocol/v4-client-js": "^1.0.0",
+    "@types/lodash": "^4.17.20",
+    "dotenv": "^16.0.0",
+    "lodash": "^4.17.21"
+  }
+}

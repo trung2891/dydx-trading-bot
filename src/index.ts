@@ -1,0 +1,86 @@
+/**
+ * Main entry point for the dYdX Trading Bot
+ *
+ * This file demonstrates how to use the market maker bot.
+ * For more advanced examples, see src/mm/example.ts
+ */
+
+import "dotenv/config";
+import { MarketMakerBot, MarketMakerConfig, OrderType } from "./mm";
+
+console.log("🚀 dYdX Market Maker Bot starting...");
+
+// Default configuration for BTC-USD market making
+const defaultConfig: MarketMakerConfig = {
+  marketId: "BTC-USD",
+  spread: 0.01, // 0.1% spread
+  orderSize: 0.0002, // 0.001 BTC per order
+  maxOrders: 20, // 3 orders per side
+  priceSteps: 10, // 3 price levels
+  refreshInterval: 10000, // Refresh every 30 seconds
+  maxPositionSize: 0.0005, // Maximum 0.005 BTC position
+  orderType: OrderType.SHORT_TERM, // Use long-term orders (better for market making)
+  orderConfig: {
+    goodTilTimeSeconds: 120, // 2 minutes for long-term orders
+    goodTilBlocks: 10, // 5 blocks for short-term orders (if switched)
+  },
+  riskParameters: {
+    maxDrawdown: 5, // 5% maximum drawdown
+    stopLoss: 2, // 2% stop loss
+    takeProfitRatio: 1.5, // 1.5:1 risk/reward ratio
+  },
+};
+
+async function main() {
+  // Check if required environment variables are set
+  if (!process.env.DYDX_TEST_MNEMONIC) {
+    console.error("❌ DYDX_TEST_MNEMONIC environment variable is required");
+    console.log("Please create a .env file with your dYdX wallet mnemonic:");
+    console.log("DYDX_TEST_MNEMONIC=your_wallet_mnemonic_here");
+    process.exit(1);
+  }
+
+  // Create and start the market maker bot
+  const bot = new MarketMakerBot(defaultConfig);
+
+  // Set up graceful shutdown
+  const shutdown = async () => {
+    console.log("\n🛑 Shutdown signal received...");
+    await bot.stop();
+    process.exit(0);
+  };
+
+  process.on("SIGINT", shutdown);
+  process.on("SIGTERM", shutdown);
+  process.on("uncaughtException", (error) => {
+    console.error("❌ Uncaught exception:", error);
+    shutdown();
+  });
+  process.on("unhandledRejection", (reason, promise) => {
+    console.error("❌ Unhandled rejection at:", promise, "reason:", reason);
+    shutdown();
+  });
+
+  try {
+    // Start the market making operations
+    await bot.start();
+  } catch (error) {
+    console.error(
+      "❌ Failed to start market maker bot:",
+      error instanceof Error ? error.message : String(error)
+    );
+    await bot.stop();
+    process.exit(1);
+  }
+}
+
+// Run the main function
+main().catch((error) => {
+  console.error(
+    "❌ Fatal error:",
+    error instanceof Error ? error.message : String(error)
+  );
+  process.exit(1);
+});
+
+export { MarketMakerBot, MarketMakerConfig };
