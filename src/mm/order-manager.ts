@@ -55,13 +55,6 @@ export class OrderManager {
     try {
       // Get current block height once for short-term orders optimization
       let currentBlock: number | undefined;
-      if (config.orderType === MMOrderType.SHORT_TERM) {
-        currentBlock =
-          await this.compositeClient.validatorClient.get.latestBlockHeight();
-        console.log(
-          `📏 Current block height: ${currentBlock} (for batch optimization)`
-        );
-      }
 
       // Calculate order prices
       const { bidPrices, askPrices } = this.calculateOrderPrices(
@@ -124,6 +117,14 @@ export class OrderManager {
       } else {
         // Batch placement
         for (let i = 0; i < orderRequests.length; i += batchSize) {
+          if (config.orderType === MMOrderType.SHORT_TERM) {
+            currentBlock =
+              await this.compositeClient.validatorClient.get.latestBlockHeight();
+            console.log(
+              `📏 Current block height: ${currentBlock} (for batch optimization)`
+            );
+          }
+
           const batch = orderRequests.slice(i, i + batchSize);
           const batchNumber = Math.floor(i / batchSize) + 1;
           const batchStartTime = Date.now();
