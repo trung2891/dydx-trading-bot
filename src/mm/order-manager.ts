@@ -252,7 +252,7 @@ export class OrderManager {
         const goodTilBlocks = config.orderConfig.goodTilBlocks || 20;
 
         const goodTilBlock = currentBlock + randomIntRange(2, goodTilBlocks);
-        console.log({ goodTilBlock });
+
         // const goodTilBlock = config.orderConfig.goodTilBlocks || 20;
 
         tx = await this.compositeClient.placeShortTermOrder(
