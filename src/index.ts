@@ -22,7 +22,7 @@ const defaultConfig: MarketMakerConfig = {
   orderType: OrderType.SHORT_TERM, // Use long-term orders (better for market making)
   orderConfig: {
     goodTilTimeSeconds: 120, // 2 minutes for long-term orders
-    goodTilBlocks: 10, // 5 blocks for short-term orders (if switched)
+    goodTilBlocks: 20, // 5 blocks for short-term orders (if switched)
     batchSize: 1000, // Place 20 orders per batch
     batchDelay: 200, // 200ms delay between batches
   },
