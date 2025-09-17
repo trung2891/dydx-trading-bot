@@ -472,10 +472,12 @@ export class MarketMakerBot {
   private getDefaultNetwork(): Network {
     const network = Network.mainnet();
     // Use custom endpoints if provided in samples
-    network.indexerConfig.restEndpoint = "http://65.109.74.254:3002";
-    network.indexerConfig.websocketEndpoint = "http://65.109.74.254:3003";
-    network.validatorConfig.restEndpoint = "http://65.109.74.254:56657";
-    network.validatorConfig.chainId = "testing";
+    network.indexerConfig.restEndpoint = process.env.INDEXER_REST_URL!;
+    network.indexerConfig.websocketEndpoint =
+      process.env.INDEXER_WEBSOCKET_URL!;
+
+    network.validatorConfig.restEndpoint = process.env.REST_URL!;
+    network.validatorConfig.chainId = process.env.CHAIN_ID!;
     return network;
   }
 
