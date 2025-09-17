@@ -53,6 +53,16 @@ export class OrderManager {
     const startTime = Date.now();
 
     try {
+      // Get current block height once for short-term orders optimization
+      let currentBlock: number | undefined;
+      if (config.orderType === MMOrderType.SHORT_TERM) {
+        currentBlock =
+          await this.compositeClient.validatorClient.get.latestBlockHeight();
+        console.log(
+          `📏 Current block height: ${currentBlock} (for batch optimization)`
+        );
+      }
+
       // Calculate order prices
       const { bidPrices, askPrices } = this.calculateOrderPrices(
         midPrice,
@@ -103,7 +113,8 @@ export class OrderManager {
             request.side,
             request.price,
             request.size,
-            config
+            config,
+            currentBlock
           );
 
           if (orderInfo) {
@@ -128,7 +139,8 @@ export class OrderManager {
               request.side,
               request.price,
               request.size,
-              config
+              config,
+              currentBlock
             )
           );
 
@@ -232,7 +244,8 @@ export class OrderManager {
     side: OrderSide,
     price: number,
     size: number,
-    config: MarketMakerConfig
+    config: MarketMakerConfig,
+    currentBlock?: number
   ): Promise<OrderInfo | null> {
     try {
       const clientId = generateRandomClientId();
@@ -247,12 +260,17 @@ export class OrderManager {
 
       if (config.orderType === MMOrderType.SHORT_TERM) {
         // Place short-term order
-        const currentBlock =
-          await this.compositeClient.validatorClient.get.latestBlockHeight();
-        const goodTilBlocks = config.orderConfig.goodTilBlocks || 20;
+        let blockHeight: number;
+        if (currentBlock !== undefined) {
+          blockHeight = currentBlock;
+        } else {
+          blockHeight =
+            await this.compositeClient.validatorClient.get.latestBlockHeight();
+        }
 
+        const goodTilBlocks = config.orderConfig.goodTilBlocks || 20;
         const goodTilBlock =
-          currentBlock + randomIntRange(goodTilBlocks / 2, goodTilBlocks);
+          blockHeight + randomIntRange(goodTilBlocks / 2, goodTilBlocks);
 
         // const goodTilBlock = config.orderConfig.goodTilBlocks || 20;
 
