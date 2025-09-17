@@ -224,10 +224,10 @@ export class MarketMakerBot {
 
       // 1. Cancel existing orders
       const cancelStartTime = Date.now();
-      await this.orderManager.cancelAllOrdersForMarket(
-        this.config.marketId,
-        this.config
-      );
+      // await this.orderManager.cancelAllOrdersForMarket(
+      //   this.config.marketId,
+      //   this.config
+      // );
       const cancelTime = Date.now() - cancelStartTime;
       console.log(`🗑️  Order cancellation completed in ${cancelTime}ms`);
 

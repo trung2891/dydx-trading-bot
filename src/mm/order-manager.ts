@@ -251,9 +251,8 @@ export class OrderManager {
           await this.compositeClient.validatorClient.get.latestBlockHeight();
         const goodTilBlocks = config.orderConfig.goodTilBlocks || 20;
 
-        const goodTilBlock =
-          currentBlock +
-          randomIntRange(Math.floor(goodTilBlocks / 2), goodTilBlocks);
+        const goodTilBlock = currentBlock + randomIntRange(2, goodTilBlocks);
+        console.log({ goodTilBlock });
         // const goodTilBlock = config.orderConfig.goodTilBlocks || 20;
 
         tx = await this.compositeClient.placeShortTermOrder(
