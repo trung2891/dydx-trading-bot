@@ -80,7 +80,7 @@ const generateBatchCancelShortTermOrders = (
 async function test(): Promise<void> {
   try {
     const wallet = await LocalWallet.fromMnemonic(
-      process.env.DYDX_TEST_MNEMONIC,
+      process.env.DYDX_TEST_MNEMONIC!,
       BECH32_PREFIX
     );
     // console.log("**Wallet**", wallet);
