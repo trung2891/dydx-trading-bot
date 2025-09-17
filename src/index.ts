@@ -13,7 +13,8 @@ console.log("🚀 dYdX Market Maker Bot starting...");
 // Default configuration for BTC-USD market making
 const defaultConfig: MarketMakerConfig = {
   marketId: "BTC-USD",
-  spread: 0.001, // 0.1% spread
+  spread: 0.1, // 0.1% spread
+  stepSize: 0.01, // 0.01% step size
   orderSize: 0.0002, // 0.001 BTC per order
   maxOrders: 2000, // 3 orders per side
   priceSteps: 1000, // 3 price levels
@@ -23,10 +24,12 @@ const defaultConfig: MarketMakerConfig = {
   orderConfig: {
     goodTilTimeSeconds: 120, // 2 minutes for long-term orders
     goodTilBlocks: 20, // 5 blocks for short-term orders (if switched)
-    batchSize: 1000, // Place 20 orders per batch
-    batchDelay: 100, // 200ms delay between batches
+    batchSize: 1000, // Place 1000 orders per batch
+    batchDelay: 100, // 100ms delay between batches
     roundPrice: 3, // 3 decimal places for price
     roundSize: 4, // 4 decimal places for size
+    useCoinGeckoFallback: true, // Use CoinGecko when orderbook has no price
+    coinGeckoSpread: 0.1, // 0.1% spread for CoinGecko fallback pricing
   },
   riskParameters: {
     maxDrawdown: 5, // 5% maximum drawdown

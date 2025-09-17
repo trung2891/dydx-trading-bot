@@ -94,7 +94,12 @@ export class MarketMakerBot {
 
       // Validate market and fetch initial data
       const marketData = await this.marketDataManager.getMarketData(
-        this.config.marketId
+        this.config.marketId,
+        false,
+        {
+          useCoinGeckoFallback: this.config.orderConfig.useCoinGeckoFallback,
+          coinGeckoSpread: this.config.orderConfig.coinGeckoSpread,
+        }
       );
       if (!marketData) {
         throw new Error(
@@ -166,7 +171,12 @@ export class MarketMakerBot {
 
     // 1. Fetch market data
     const marketData = await this.marketDataManager.getMarketData(
-      this.config.marketId
+      this.config.marketId,
+      false,
+      {
+        useCoinGeckoFallback: this.config.orderConfig.useCoinGeckoFallback,
+        coinGeckoSpread: this.config.orderConfig.coinGeckoSpread,
+      }
     );
     if (!marketData) {
       console.warn("⚠️ No market data available, skipping cycle");

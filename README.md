@@ -114,21 +114,23 @@ const shortTermConfig: MarketMakerConfig = {
 
 ### Configuration Parameters
 
-| Parameter                        | Type      | Description                                      |
-| -------------------------------- | --------- | ------------------------------------------------ |
-| `marketId`                       | string    | Trading pair (e.g., "BTC-USD", "ETH-USD")        |
-| `spread`                         | number    | Spread percentage around mid-price               |
-| `orderSize`                      | number    | Size of each order                               |
-| `maxOrders`                      | number    | Maximum orders per side                          |
-| `priceSteps`                     | number    | Number of price levels                           |
-| `refreshInterval`                | number    | Milliseconds between order refreshes             |
-| `maxPositionSize`                | number    | Maximum position size allowed                    |
-| `orderType`                      | OrderType | SHORT_TERM or LONG_TERM                          |
-| `orderConfig.goodTilTimeSeconds` | number    | Validity time for long-term orders (seconds)     |
-| `orderConfig.goodTilBlocks`      | number    | Validity blocks for short-term orders            |
-| `orderConfig.batchSize`          | number    | Orders per batch (1 = sequential, >1 = parallel) |
-| `orderConfig.batchDelay`         | number    | Milliseconds delay between batches               |
-| `riskParameters`                 | object    | Risk management settings                         |
+| Parameter                          | Type      | Description                                               |
+| ---------------------------------- | --------- | --------------------------------------------------------- |
+| `marketId`                         | string    | Trading pair (e.g., "BTC-USD", "ETH-USD")                 |
+| `spread`                           | number    | Spread percentage around mid-price                        |
+| `orderSize`                        | number    | Size of each order                                        |
+| `maxOrders`                        | number    | Maximum orders per side                                   |
+| `priceSteps`                       | number    | Number of price levels                                    |
+| `refreshInterval`                  | number    | Milliseconds between order refreshes                      |
+| `maxPositionSize`                  | number    | Maximum position size allowed                             |
+| `orderType`                        | OrderType | SHORT_TERM or LONG_TERM                                   |
+| `orderConfig.goodTilTimeSeconds`   | number    | Validity time for long-term orders (seconds)              |
+| `orderConfig.goodTilBlocks`        | number    | Validity blocks for short-term orders                     |
+| `orderConfig.batchSize`            | number    | Orders per batch (1 = sequential, >1 = parallel)          |
+| `orderConfig.batchDelay`           | number    | Milliseconds delay between batches                        |
+| `orderConfig.useCoinGeckoFallback` | boolean   | Use CoinGecko when orderbook has no price (default: true) |
+| `orderConfig.coinGeckoSpread`      | number    | Spread percentage for CoinGecko fallback (default: 0.1%)  |
+| `riskParameters`                   | object    | Risk management settings                                  |
 
 ## Usage Examples
 
@@ -342,6 +344,53 @@ const config: MarketMakerConfig = {
 
 - Long-term orders: 5-10 (rate limited)
 - Short-term orders: 10-20 (higher rate limits)
+
+### CoinGecko Price Fallback
+
+When the dYdX orderbook doesn't have price data, the bot can automatically fall back to CoinGecko prices:
+
+```typescript
+const config: MarketMakerConfig = {
+  // ... other settings
+  orderConfig: {
+    useCoinGeckoFallback: true, // Enable fallback (default: true)
+    coinGeckoSpread: 0.1, // 0.1% spread around CoinGecko price
+    // ... other order config
+  },
+};
+```
+
+**Supported Markets:**
+The bot supports CoinGecko fallback for 60+ markets including:
+
+- Major cryptocurrencies: BTC, ETH, SOL, AVAX, MATIC, DOT, ADA, LINK, etc.
+- DeFi tokens: UNI, AAVE, CRV, COMP, YFI, SUSHI, 1INCH, etc.
+- Layer 2 tokens: ARB, OP, BLUR, IMX, etc.
+- Meme coins: DOGE, SHIB, PEPE, BONK, WIF, etc.
+- New tokens: TIA, SEI, PYTH, JTO, JUP, STRK, etc.
+
+**Fallback Features:**
+
+- ✅ **Automatic Detection**: Triggers when orderbook has no valid prices
+- ✅ **30-Second Caching**: Reduces API calls and improves performance
+- ✅ **Configurable Spread**: Set custom bid/ask spread around CoinGecko price
+- ✅ **Batch Fetching**: Efficient for multiple markets
+- ✅ **Optional**: Can be disabled if you prefer orderbook-only data
+
+**Example Fallback Behavior:**
+
+```
+⚠️ No valid orderbook price for BTC-USD, falling back to CoinGecko
+🔍 Fetching CoinGecko price for BTC-USD (bitcoin)
+✅ Using CoinGecko price as fallback: $43250 for BTC-USD (spread: 0.10%)
+```
+
+**Test the Fallback:**
+
+```bash
+# Test CoinGecko fallback functionality
+yarn ts-node scripts/test-coingecko-fallback.ts
+```
 
 ## Important Notes
 

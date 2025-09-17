@@ -591,7 +591,7 @@ export class OrderManager {
     const bidPrices: number[] = [];
     const askPrices: number[] = [];
     const halfSpread = config.spread / 2;
-    const stepSize = config.spread / config.priceSteps;
+    const stepSize = config.stepSize;
 
     for (let i = 0; i < config.priceSteps; i++) {
       const offset = (i + 1) * stepSize;

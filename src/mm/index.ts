@@ -8,6 +8,7 @@ export { MarketMakerBot } from "./market-maker-bot";
 export { MarketDataManager } from "./market-data";
 export { OrderManager } from "./order-manager";
 export { PositionManager } from "./position-manager";
+export { CoinGeckoService } from "./coingecko-service";
 
 export * from "./types";
 export * from "./utils";
