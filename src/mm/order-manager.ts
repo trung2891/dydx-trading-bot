@@ -360,9 +360,9 @@ export class OrderManager {
       }
       this.ordersByMarket.get(marketId)!.add(clientId.toString());
 
-      console.log(
-        `✅ Placed ${side} order: ${roundedSize} ${marketId} at ${roundedPrice} (Client ID: ${clientId})`
-      );
+      // console.log(
+      //   `✅ Placed ${side} order: ${roundedSize} ${marketId} at ${roundedPrice} (Client ID: ${clientId})`
+      // );
       return orderInfo;
     } catch (error) {
       console.error(
