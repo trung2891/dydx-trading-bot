@@ -79,6 +79,8 @@ const longTermConfig: MarketMakerConfig = {
   orderType: OrderType.LONG_TERM, // Use long-term orders
   orderConfig: {
     goodTilTimeSeconds: 300, // 5 minutes validity
+    batchSize: 5, // Place 5 orders per batch
+    batchDelay: 100, // 100ms delay between batches
   },
   riskParameters: {
     maxDrawdown: 5, // 5% maximum drawdown
@@ -99,6 +101,8 @@ const shortTermConfig: MarketMakerConfig = {
   orderType: OrderType.SHORT_TERM, // Use short-term orders
   orderConfig: {
     goodTilBlocks: 20, // 20 blocks validity (~2 minutes)
+    batchSize: 20, // Place 20 orders per batch
+    batchDelay: 50, // 50ms delay between batches
   },
   riskParameters: {
     maxDrawdown: 3, // 3% maximum drawdown
@@ -110,19 +114,21 @@ const shortTermConfig: MarketMakerConfig = {
 
 ### Configuration Parameters
 
-| Parameter                        | Type      | Description                                  |
-| -------------------------------- | --------- | -------------------------------------------- |
-| `marketId`                       | string    | Trading pair (e.g., "BTC-USD", "ETH-USD")    |
-| `spread`                         | number    | Spread percentage around mid-price           |
-| `orderSize`                      | number    | Size of each order                           |
-| `maxOrders`                      | number    | Maximum orders per side                      |
-| `priceSteps`                     | number    | Number of price levels                       |
-| `refreshInterval`                | number    | Milliseconds between order refreshes         |
-| `maxPositionSize`                | number    | Maximum position size allowed                |
-| `orderType`                      | OrderType | SHORT_TERM or LONG_TERM                      |
-| `orderConfig.goodTilTimeSeconds` | number    | Validity time for long-term orders (seconds) |
-| `orderConfig.goodTilBlocks`      | number    | Validity blocks for short-term orders        |
-| `riskParameters`                 | object    | Risk management settings                     |
+| Parameter                        | Type      | Description                                      |
+| -------------------------------- | --------- | ------------------------------------------------ |
+| `marketId`                       | string    | Trading pair (e.g., "BTC-USD", "ETH-USD")        |
+| `spread`                         | number    | Spread percentage around mid-price               |
+| `orderSize`                      | number    | Size of each order                               |
+| `maxOrders`                      | number    | Maximum orders per side                          |
+| `priceSteps`                     | number    | Number of price levels                           |
+| `refreshInterval`                | number    | Milliseconds between order refreshes             |
+| `maxPositionSize`                | number    | Maximum position size allowed                    |
+| `orderType`                      | OrderType | SHORT_TERM or LONG_TERM                          |
+| `orderConfig.goodTilTimeSeconds` | number    | Validity time for long-term orders (seconds)     |
+| `orderConfig.goodTilBlocks`      | number    | Validity blocks for short-term orders            |
+| `orderConfig.batchSize`          | number    | Orders per batch (1 = sequential, >1 = parallel) |
+| `orderConfig.batchDelay`         | number    | Milliseconds delay between batches               |
+| `riskParameters`                 | object    | Risk management settings                         |
 
 ## Usage Examples
 
@@ -302,6 +308,40 @@ The bot now supports both order types, allowing you to choose the best strategy 
 | High-Frequency Trading | SHORT_TERM             | Fast execution, frequent order updates            |
 | Scalping               | SHORT_TERM             | Quick in/out, better time priority                |
 | Conservative Trading   | LONG_TERM              | Longer-term positions, stable strategy            |
+
+### Batch Order Placement
+
+The bot supports batch order placement to improve performance when placing multiple orders:
+
+```typescript
+const config: MarketMakerConfig = {
+  // ... other settings
+  orderConfig: {
+    batchSize: 20, // Place 20 orders in parallel per batch
+    batchDelay: 200, // Wait 200ms between batches
+    // ... other order config
+  },
+};
+```
+
+**Batch Configuration:**
+
+- `batchSize: 1` - Sequential order placement (default, safest)
+- `batchSize: >1` - Parallel order placement within batches
+- `batchDelay` - Delay between batches to avoid rate limiting
+
+**Benefits:**
+
+- ✅ Faster order placement for large order counts
+- ✅ Reduced total execution time
+- ✅ Better for high-frequency strategies
+- ⚠️ May hit rate limits if batch size is too large
+- ⚠️ Some orders may fail in parallel execution
+
+**Recommended Batch Sizes:**
+
+- Long-term orders: 5-10 (rate limited)
+- Short-term orders: 10-20 (higher rate limits)
 
 ## Important Notes
 

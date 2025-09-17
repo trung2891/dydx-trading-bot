@@ -16,6 +16,8 @@ export const longTermConfig: MarketMakerConfig = {
   orderType: OrderType.LONG_TERM,
   orderConfig: {
     goodTilTimeSeconds: 300, // 5 minutes validity
+    batchSize: 5, // Place 5 orders per batch
+    batchDelay: 100, // 100ms delay between batches
   },
   riskParameters: {
     maxDrawdown: 5, // 5% maximum drawdown
@@ -36,6 +38,8 @@ export const shortTermConfig: MarketMakerConfig = {
   orderType: OrderType.SHORT_TERM,
   orderConfig: {
     goodTilBlocks: 5, // 5 blocks validity (~30 seconds)
+    batchSize: 20, // Place 20 orders per batch (high-frequency)
+    batchDelay: 50, // 50ms delay between batches
   },
   riskParameters: {
     maxDrawdown: 3, // 3% maximum drawdown

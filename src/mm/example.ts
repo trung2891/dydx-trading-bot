@@ -23,6 +23,8 @@ const btcConfig: MarketMakerConfig = {
   orderType: OrderType.LONG_TERM, // Use long-term orders
   orderConfig: {
     goodTilTimeSeconds: 300, // 5 minutes for long-term orders
+    batchSize: 5, // Place 5 orders per batch
+    batchDelay: 100, // 100ms delay between batches
   },
   riskParameters: {
     maxDrawdown: 5, // 5% maximum drawdown
@@ -43,6 +45,8 @@ const ethConfig: MarketMakerConfig = {
   orderType: OrderType.SHORT_TERM, // Use short-term orders for faster trading
   orderConfig: {
     goodTilBlocks: 15, // 15 blocks for short-term orders
+    batchSize: 10, // Place 10 orders per batch
+    batchDelay: 50, // 50ms delay between batches
   },
   riskParameters: {
     maxDrawdown: 3, // 3% maximum drawdown

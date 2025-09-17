@@ -19,6 +19,9 @@ export interface MarketMakerConfig {
     goodTilBlocks?: number; // number of blocks until expiration (default: 20)
     // For long-term orders
     goodTilTimeSeconds?: number; // seconds until expiration (default: 300)
+    // Batch order settings
+    batchSize?: number; // number of orders to place in a single batch (default: 1)
+    batchDelay?: number; // milliseconds delay between batches (default: 100)
   };
   riskParameters: {
     maxDrawdown: number; // maximum allowed drawdown

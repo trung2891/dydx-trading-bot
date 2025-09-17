@@ -37,6 +37,7 @@ export class OrderManager {
 
   /**
    * Place multiple orders around mid price.
+   * Supports batch order placement for improved performance.
    */
   async placeOrdersAroundMidPrice(
     marketId: string,
@@ -44,6 +45,8 @@ export class OrderManager {
     config: MarketMakerConfig
   ): Promise<OrderInfo[]> {
     const placedOrders: OrderInfo[] = [];
+    const batchSize = config.orderConfig.batchSize || 1;
+    const batchDelay = config.orderConfig.batchDelay || 100;
 
     try {
       // Calculate order prices
@@ -52,53 +55,110 @@ export class OrderManager {
         config
       );
 
-      // Place buy orders
+      console.log(
+        `📊 Placing orders around mid price $${midPrice} with ${config.spread}% spread (batch size: ${batchSize})`
+      );
+
+      // Prepare all order requests
+      const orderRequests: Array<{
+        side: OrderSide;
+        price: number;
+        size: number;
+      }> = [];
+
+      // Prepare buy orders
       for (let i = 0; i < Math.min(bidPrices.length, config.maxOrders); i++) {
         const price = bidPrices[i];
         const size = this.calculateOrderSize(config.orderSize, i);
 
-        if (!isValidPrice(price) || !isValidSize(size)) {
+        if (isValidPrice(price) && isValidSize(size)) {
+          orderRequests.push({ side: OrderSide.BUY, price, size });
+        } else {
           console.warn(`Invalid price ${price} or size ${size} for buy order`);
-          continue;
-        }
-
-        const orderInfo = await this.placeOrder(
-          marketId,
-          OrderSide.BUY,
-          price,
-          size,
-          config
-        );
-
-        if (orderInfo) {
-          placedOrders.push(orderInfo);
         }
       }
 
-      // Place sell orders
+      // Prepare sell orders
       for (let i = 0; i < Math.min(askPrices.length, config.maxOrders); i++) {
         const price = askPrices[i];
         const size = this.calculateOrderSize(config.orderSize, i);
 
-        if (!isValidPrice(price) || !isValidSize(size)) {
+        if (isValidPrice(price) && isValidSize(size)) {
+          orderRequests.push({ side: OrderSide.SELL, price, size });
+        } else {
           console.warn(`Invalid price ${price} or size ${size} for sell order`);
-          continue;
-        }
-
-        const orderInfo = await this.placeOrder(
-          marketId,
-          OrderSide.SELL,
-          price,
-          size,
-          config
-        );
-
-        if (orderInfo) {
-          placedOrders.push(orderInfo);
         }
       }
 
-      console.log(`Placed ${placedOrders.length} orders for ${marketId}`);
+      // Place orders in batches
+      if (batchSize === 1) {
+        // Sequential placement (original behavior)
+        for (const request of orderRequests) {
+          const orderInfo = await this.placeOrder(
+            marketId,
+            request.side,
+            request.price,
+            request.size,
+            config
+          );
+
+          if (orderInfo) {
+            placedOrders.push(orderInfo);
+          }
+        }
+      } else {
+        // Batch placement
+        for (let i = 0; i < orderRequests.length; i += batchSize) {
+          const batch = orderRequests.slice(i, i + batchSize);
+          console.log(
+            `📦 Processing batch ${Math.floor(i / batchSize) + 1} with ${
+              batch.length
+            } orders`
+          );
+
+          // Place orders in parallel within the batch
+          const batchPromises = batch.map((request) =>
+            this.placeOrder(
+              marketId,
+              request.side,
+              request.price,
+              request.size,
+              config
+            )
+          );
+
+          try {
+            const batchResults = await Promise.allSettled(batchPromises);
+
+            batchResults.forEach((result, index) => {
+              if (result.status === "fulfilled" && result.value) {
+                placedOrders.push(result.value);
+              } else if (result.status === "rejected") {
+                const request = batch[index];
+                console.error(
+                  `❌ Failed to place ${request.side} order at ${request.price}:`,
+                  result.reason
+                );
+              }
+            });
+
+            // Add delay between batches (except for the last batch)
+            if (i + batchSize < orderRequests.length && batchDelay > 0) {
+              console.log(`⏳ Waiting ${batchDelay}ms before next batch...`);
+              await sleep(batchDelay);
+            }
+          } catch (error) {
+            console.error(
+              `❌ Batch placement error:`,
+              error instanceof Error ? error.message : String(error)
+            );
+          }
+        }
+      }
+
+      console.log(
+        `✅ Placed ${placedOrders.length}/${orderRequests.length} orders for ${marketId}`
+      );
       return placedOrders;
     } catch (error) {
       console.error(

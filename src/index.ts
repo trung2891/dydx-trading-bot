@@ -15,14 +15,16 @@ const defaultConfig: MarketMakerConfig = {
   marketId: "BTC-USD",
   spread: 0.01, // 0.1% spread
   orderSize: 0.0002, // 0.001 BTC per order
-  maxOrders: 20, // 3 orders per side
-  priceSteps: 10, // 3 price levels
+  maxOrders: 2000, // 3 orders per side
+  priceSteps: 1000, // 3 price levels
   refreshInterval: 10000, // Refresh every 30 seconds
   maxPositionSize: 0.0005, // Maximum 0.005 BTC position
   orderType: OrderType.SHORT_TERM, // Use long-term orders (better for market making)
   orderConfig: {
     goodTilTimeSeconds: 120, // 2 minutes for long-term orders
     goodTilBlocks: 10, // 5 blocks for short-term orders (if switched)
+    batchSize: 1000, // Place 20 orders per batch
+    batchDelay: 200, // 200ms delay between batches
   },
   riskParameters: {
     maxDrawdown: 5, // 5% maximum drawdown
