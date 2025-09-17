@@ -15,6 +15,7 @@ import { MarketMakerConfig, OrderType } from "./types";
 const btcConfig: MarketMakerConfig = {
   marketId: "BTC-USD",
   spread: 0.05, // 0.05% spread
+  stepSize: 0.001, // 0.001% step size
   orderSize: 0.001, // 0.001 BTC per order
   maxOrders: 3, // 3 orders per side
   priceSteps: 3, // 3 price levels
@@ -37,6 +38,7 @@ const btcConfig: MarketMakerConfig = {
 const ethConfig: MarketMakerConfig = {
   marketId: "ETH-USD",
   spread: 0.08, // 0.08% spread (slightly wider for ETH)
+  stepSize: 0.001, // 0.001% step size
   orderSize: 0.01, // 0.01 ETH per order
   maxOrders: 5, // 5 orders per side
   priceSteps: 5, // 5 price levels

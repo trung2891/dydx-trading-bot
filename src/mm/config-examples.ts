@@ -8,6 +8,7 @@ import { MarketMakerConfig, OrderType } from "./types";
 export const longTermConfig: MarketMakerConfig = {
   marketId: "BTC-USD",
   spread: 0.1, // 0.1% spread
+  stepSize: 0.01, // 0.01% step size
   orderSize: 0.001, // 0.001 BTC per order
   maxOrders: 5, // 5 orders per side
   priceSteps: 5, // 5 price levels
@@ -30,6 +31,7 @@ export const longTermConfig: MarketMakerConfig = {
 export const shortTermConfig: MarketMakerConfig = {
   marketId: "ETH-USD",
   spread: 0.05, // 0.05% spread (tighter)
+  stepSize: 0.01, // 0.01% step size
   orderSize: 0.01, // 0.01 ETH per order
   maxOrders: 3, // 3 orders per side
   priceSteps: 3, // 3 price levels
@@ -52,6 +54,7 @@ export const shortTermConfig: MarketMakerConfig = {
 export const conservativeLongTermConfig: MarketMakerConfig = {
   marketId: "BTC-USD",
   spread: 0.2, // 0.2% spread (wider)
+  stepSize: 0.01, // 0.01% step size
   orderSize: 0.0005, // 0.0005 BTC per order (smaller)
   maxOrders: 3, // 3 orders per side
   priceSteps: 3, // 3 price levels
@@ -72,6 +75,7 @@ export const conservativeLongTermConfig: MarketMakerConfig = {
 export const aggressiveShortTermConfig: MarketMakerConfig = {
   marketId: "ETH-USD",
   spread: 0.03, // 0.03% spread (very tight)
+  stepSize: 0.01, // 0.01% step size
   orderSize: 0.02, // 0.02 ETH per order
   maxOrders: 7, // 7 orders per side
   priceSteps: 7, // 7 price levels
