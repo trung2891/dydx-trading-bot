@@ -274,7 +274,8 @@ export class OrderManager {
 
         // const goodTilBlock = config.orderConfig.goodTilBlocks || 20;
 
-        tx = await this.compositeClient.placeShortTermOrder(
+        // tx = await
+        this.compositeClient.placeShortTermOrder(
           this.subaccount,
           marketId,
           side,
@@ -293,10 +294,10 @@ export class OrderManager {
           price: roundedPrice,
           size: roundedSize,
           goodTilBlock,
-          orderId:
-            typeof tx.hash === "string"
-              ? tx.hash
-              : Buffer.from(tx.hash).toString("hex"),
+          // orderId:
+          //   typeof tx.hash === "string"
+          //     ? tx.hash
+          //     : Buffer.from(tx.hash).toString("hex"),
         };
 
         console.log(
