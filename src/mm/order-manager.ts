@@ -300,9 +300,9 @@ export class OrderManager {
               : Buffer.from(tx.hash).toString("hex"),
         };
 
-        console.log(
-          `✅ Placed SHORT-TERM ${side} order: ${roundedSize} ${marketId} at ${roundedPrice} (Client ID: ${clientId}, GTB: ${goodTilBlock})`
-        );
+        // console.log(
+        //   `✅ Placed SHORT-TERM ${side} order: ${roundedSize} ${marketId} at ${roundedPrice} (Client ID: ${clientId}, GTB: ${goodTilBlock})`
+        // );
       } else {
         // Place long-term order
         // const goodTilTimeInSeconds =
