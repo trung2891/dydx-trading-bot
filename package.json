@@ -21,7 +21,8 @@
     "cancel-all-orders": "ts-node scripts/cancel-all-orders.ts",
     "emergency-cancel": "ts-node scripts/emergency-cancel.ts",
     "test-coingecko": "ts-node scripts/test-coingecko-fallback.ts",
-    "test": "echo 'Market Maker Bot is ready! Create .env file with DYDX_TEST_MNEMONIC and run npm run dev'"
+    "test": "echo 'Market Maker Bot is ready! Create .env file with DYDX_TEST_MNEMONIC and run npm run dev'",
+    "wash-trade": "tsx scripts/run-wash-trade.ts"
   },
   "keywords": [
     "typescript",
