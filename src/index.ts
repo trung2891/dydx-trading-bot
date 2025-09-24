@@ -38,7 +38,7 @@ const defaultConfig: MarketMakerConfig = {
   },
   oracleStrategy: {
     enabled: true, // enable oracle-based strategy
-    oraclePriceThreshold: 0.5, // percentage difference to trigger oracle orders (e.g., 0.5 for 0.5%)
+    oraclePriceThreshold: 0.01, // percentage difference to trigger oracle orders (e.g., 0.5 for 0.5%)
   },
 };
 
