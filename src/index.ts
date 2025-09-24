@@ -19,7 +19,7 @@ const defaultConfig: MarketMakerConfig = {
   maxOrders: 2000, // 3 orders per side
   priceSteps: 1000, // 3 price levels
   refreshInterval: 5000, // Refresh every 30 seconds
-  maxPositionSize: 0.1, // Maximum 0.005 BTC position
+  maxPositionSize: 100, // Maximum 0.005 BTC position
   orderType: OrderType.SHORT_TERM, // Use long-term orders (better for market making)
   orderConfig: {
     goodTilTimeSeconds: 120, // 2 minutes for long-term orders
