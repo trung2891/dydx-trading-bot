@@ -24,7 +24,8 @@ const MAX_CLIENT_ID = 2 ** 32 - 1;
 
 async function test(): Promise<void> {
   const wallet = await LocalWallet.fromMnemonic(
-    process.env.DYDX_TEST_MNEMONIC!,
+    process.env.WASH_TRADE_MNEMONIC!,
+    // process.env.DYDX_TEST_MNEMONIC!,
     "lfg"
   );
   // console.log(wallet);
@@ -42,7 +43,11 @@ async function test(): Promise<void> {
 
   const subaccount = SubaccountInfo.forLocalWallet(wallet, 0);
   console.log(subaccount);
-  const tx = await client.post.deposit(subaccount, 0, new Long(1000_000_000));
+  const tx = await client.post.deposit(
+    subaccount,
+    0,
+    new Long(1_000_000_000_000)
+  );
   console.log("**Deposit Tx**");
   console.log(tx);
 }

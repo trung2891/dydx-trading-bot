@@ -36,7 +36,7 @@ export class MarketMakerBot {
 
   constructor(config: MarketMakerConfig, network?: Network) {
     this.config = config;
-    this.network = network || this.getDefaultNetwork();
+    this.network = network || MarketMakerBot.getDefaultNetwork();
 
     this.stats = {
       totalTrades: 0,
@@ -534,7 +534,7 @@ export class MarketMakerBot {
   /**
    * Get default network configuration.
    */
-  private getDefaultNetwork(): Network {
+  public static getDefaultNetwork(): Network {
     const network = Network.mainnet();
     // Use custom endpoints if provided in samples
     network.indexerConfig.restEndpoint = process.env.INDEXER_REST_URL!;
