@@ -21,6 +21,8 @@
     "cancel-all-orders": "ts-node scripts/cancel-all-orders.ts",
     "emergency-cancel": "ts-node scripts/emergency-cancel.ts",
     "test-coingecko": "ts-node scripts/test-coingecko-fallback.ts",
+    "test-binance": "tsx scripts/test-binance-price.ts",
+    "test-arbitrage": "tsx scripts/test-arbitrage-strategy.ts",
     "test": "echo 'Market Maker Bot is ready! Create .env file with DYDX_TEST_MNEMONIC and run npm run dev'",
     "wash-trade": "tsx scripts/run-wash-trade.ts"
   },
@@ -40,6 +42,7 @@
   "dependencies": {
     "@oraichain/lfg-client-js": "^1.0.1",
     "@types/lodash": "^4.17.20",
+    "ccxt": "^4.5.5",
     "dotenv": "^16.0.0",
     "lodash": "^4.17.21"
   }

@@ -19,6 +19,7 @@ import {
   TradePattern,
 } from "./types";
 import { CoinGeckoService } from "../mm/coingecko-service";
+import { BinancePriceService } from "./binance-price-service";
 import {
   generateRandomClientId,
   sleep,
@@ -36,6 +37,7 @@ export class WashTradeBot {
   private state: WashTradeState = WashTradeState.STOPPED;
   private activeOrders: Map<string, WashTradeOrder> = new Map();
   private coinGeckoService: CoinGeckoService;
+  private binancePriceService: BinancePriceService;
   private volumeTarget: VolumeTarget;
   private stats: WashTradeStats;
   private isRunning: boolean = false;
@@ -53,6 +55,7 @@ export class WashTradeBot {
     this.subaccount = subaccount;
     this.config = config;
     this.coinGeckoService = new CoinGeckoService();
+    this.binancePriceService = new BinancePriceService();
 
     // Initialize volume target
     this.volumeTarget = {
@@ -93,6 +96,15 @@ export class WashTradeBot {
     this.startTime = Date.now();
 
     try {
+      // Test Binance connection
+      console.log("🔗 Testing Binance connection...");
+      const binanceConnected = await this.binancePriceService.testConnection();
+      if (!binanceConnected) {
+        console.warn(
+          "⚠️ Binance connection failed, will use fallback price sources"
+        );
+      }
+
       // Initialize volume tracking
       this.volumeTarget.periodStart = Date.now();
       this.volumeTarget.current = 0;
@@ -150,108 +162,86 @@ export class WashTradeBot {
   }
 
   /**
-   * Execute a wash trade (buy and sell sequence)
+   * Execute arbitrage-based wash trade between orderbook and Binance prices
    */
   private async executeWashTrade(): Promise<void> {
     try {
-      // Get current market price
-      const marketPrice = await this.getCurrentMarketPrice();
-      if (!marketPrice) {
-        console.warn("⚠️ Could not get market price, skipping trade");
+      // Get both orderbook and Binance prices for comparison
+      const orderbookPrice = await this.getOrderbookPrice();
+      const binancePrice = await this.getBinancePrice();
+
+      if (!orderbookPrice || !binancePrice) {
+        console.warn(
+          "⚠️ Could not get both orderbook and Binance prices, skipping trade"
+        );
         return;
       }
 
-      // Generate trade pattern
-      const pattern = this.generateTradePattern();
+      const priceDiff = orderbookPrice - binancePrice;
+      const priceDiffPercent = (priceDiff / binancePrice) * 100;
 
-      // Execute the wash trade based on pattern
-      switch (pattern.type) {
-        case "BUY_SELL":
-          await this.executeBuySellPattern(marketPrice, pattern);
-          break;
-        case "SELL_BUY":
-          await this.executeSellBuyPattern(marketPrice, pattern);
-          break;
-        case "RANDOM":
-          await this.executeRandomPattern(marketPrice, pattern);
-          break;
+      console.log(
+        `📊 Price Comparison: Orderbook: $${orderbookPrice.toFixed(
+          2
+        )} | Binance: $${binancePrice.toFixed(2)} | Diff: $${priceDiff.toFixed(
+          2
+        )} (${priceDiffPercent.toFixed(3)}%)`
+      );
+
+      // Execute arbitrage strategy
+      if (orderbookPrice > binancePrice) {
+        // Orderbook price is higher than Binance -> SHORT at Binance price
+        console.log(
+          `📉 Orderbook > Binance: SHORTING at Binance price $${binancePrice.toFixed(
+            2
+          )}`
+        );
+        await this.executeShortArbitrage(binancePrice);
+      } else if (orderbookPrice < binancePrice) {
+        // Orderbook price is lower than Binance -> LONG at Binance price
+        console.log(
+          `📈 Orderbook < Binance: LONGING at Binance price $${binancePrice.toFixed(
+            2
+          )}`
+        );
+        await this.executeLongArbitrage(binancePrice);
+      } else {
+        console.log(`⚖️ Prices are equal, no arbitrage opportunity`);
       }
     } catch (error) {
       console.error(
-        "❌ Error executing wash trade:",
+        "❌ Error executing arbitrage wash trade:",
         error instanceof Error ? error.message : String(error)
       );
     }
   }
 
   /**
-   * Execute buy-then-sell pattern with market orders
+   * Execute short arbitrage when orderbook price > Binance price
    */
-  private async executeBuySellPattern(
-    marketPrice: number,
-    pattern: TradePattern
-  ): Promise<void> {
-    // Place buy market order
-    const buySize = this.calculateTradeSize();
+  private async executeShortArbitrage(binancePrice: number): Promise<void> {
+    const tradeSize = this.calculateTradeSize();
 
-    const buyOrder = await this.placeWashOrder(
-      OrderSide.BUY,
-      marketPrice, // Price is not used for market orders
-      buySize
+    // Place SELL order at Binance price
+    console.log(
+      `🔄 SHORT Arbitrage: Selling at Binance price $${binancePrice.toFixed(2)}`
     );
 
-    if (buyOrder) {
-      // Short delay for market orders (they execute immediately)
-      await sleep(this.getRandomDelay(100, 500));
-
-      // Place sell market order
-      const sellSize = buySize; // Same size for wash trade
-
-      await this.placeWashOrder(OrderSide.SELL, marketPrice, sellSize);
-    }
+    await this.placeWashOrder(OrderSide.SELL, binancePrice, tradeSize);
   }
 
   /**
-   * Execute sell-then-buy pattern with market orders
+   * Execute long arbitrage when orderbook price < Binance price
    */
-  private async executeSellBuyPattern(
-    marketPrice: number,
-    pattern: TradePattern
-  ): Promise<void> {
-    // Place sell market order
-    const sellSize = this.calculateTradeSize();
+  private async executeLongArbitrage(binancePrice: number): Promise<void> {
+    const tradeSize = this.calculateTradeSize();
 
-    const sellOrder = await this.placeWashOrder(
-      OrderSide.SELL,
-      marketPrice, // Price is not used for market orders
-      sellSize
+    // Place BUY order at Binance price
+    console.log(
+      `🔄 LONG Arbitrage: Buying at Binance price $${binancePrice.toFixed(2)}`
     );
 
-    if (sellOrder) {
-      // Short delay for market orders (they execute immediately)
-      await sleep(this.getRandomDelay(100, 500));
-
-      // Place buy market order
-      const buySize = sellSize; // Same size for wash trade
-
-      await this.placeWashOrder(OrderSide.BUY, marketPrice, buySize);
-    }
-  }
-
-  /**
-   * Execute random pattern
-   */
-  private async executeRandomPattern(
-    marketPrice: number,
-    pattern: TradePattern
-  ): Promise<void> {
-    const isBuyFirst = Math.random() > 0.5;
-
-    if (isBuyFirst) {
-      await this.executeBuySellPattern(marketPrice, pattern);
-    } else {
-      await this.executeSellBuyPattern(marketPrice, pattern);
-    }
+    await this.placeWashOrder(OrderSide.BUY, binancePrice, tradeSize);
   }
 
   /**
@@ -287,16 +277,16 @@ export class WashTradeBot {
       const goodTilBlocks = this.config.orderConfig.goodTilBlocks || 10;
       const goodTilBlock = currentBlock + goodTilBlocks;
 
-      // Use market order (price = 0 for market orders)
+      // Use limit order for precise price control
       const tx = await this.compositeClient.placeShortTermOrder(
         this.subaccount,
         this.config.marketId,
         side,
-        0, // Market order price (0 for market orders)
+        price, // Use the calculated price for limit order
         roundedSize,
         clientId,
         goodTilBlock,
-        Order_TimeInForce.TIME_IN_FORCE_IOC, // Immediate or Cancel for market orders
+        Order_TimeInForce.TIME_IN_FORCE_UNSPECIFIED, // Good Till Time for limit orders
         false // postOnly
       );
 
@@ -321,17 +311,15 @@ export class WashTradeBot {
       this.updatePositionAndVolume(side, roundedSize, currentMarketPrice);
 
       console.log(
-        `🔄 Wash ${side} MARKET order: ${roundedSize} ${
+        `🔄 Arbitrage ${side} LIMIT order: ${roundedSize} ${
           this.config.marketId
-        } at market price ~$${currentMarketPrice.toFixed(
-          2
-        )} (Client ID: ${clientId})`
+        } at price $${price.toFixed(2)} (Client ID: ${clientId})`
       );
 
       return washOrder;
     } catch (error) {
       console.error(
-        `❌ Failed to place wash ${side} market order:`,
+        `❌ Failed to place arbitrage ${side} limit order:`,
         error instanceof Error ? error.message : String(error)
       );
       return null;
@@ -371,34 +359,6 @@ export class WashTradeBot {
   }
 
   /**
-   * Generate trade pattern
-   */
-  private generateTradePattern(): TradePattern {
-    const patterns: TradePattern[] = [
-      {
-        type: "BUY_SELL",
-        minDelay: 1000,
-        maxDelay: 5000,
-        priceOffset: 0.1,
-      },
-      {
-        type: "SELL_BUY",
-        minDelay: 1000,
-        maxDelay: 5000,
-        priceOffset: 0.1,
-      },
-      {
-        type: "RANDOM",
-        minDelay: 500,
-        maxDelay: 3000,
-        priceOffset: 0.05,
-      },
-    ];
-
-    return patterns[Math.floor(Math.random() * patterns.length)];
-  }
-
-  /**
    * Calculate next trade delay based on strategy
    */
   private calculateNextTradeDelay(): number {
@@ -429,11 +389,10 @@ export class WashTradeBot {
   }
 
   /**
-   * Get current market price
+   * Get orderbook mid price from local dYdX orderbook
    */
-  private async getCurrentMarketPrice(): Promise<number | null> {
+  private async getOrderbookPrice(): Promise<number | null> {
     try {
-      // Try to get price from orderbook first
       const orderbook =
         await this.compositeClient.indexerClient.markets.getPerpetualMarketOrderbook(
           this.config.marketId
@@ -448,13 +407,109 @@ export class WashTradeBot {
       ) {
         const bestBid = parseFloat(orderbook.bids[0].price);
         const bestAsk = parseFloat(orderbook.asks[0].price);
-        return (bestBid + bestAsk) / 2;
+        const midPrice = (bestBid + bestAsk) / 2;
+        return midPrice;
       }
 
-      // Fallback to CoinGecko
-      return await this.coinGeckoService.getPrice(this.config.marketId);
+      return null;
     } catch (error) {
-      console.error("Error getting market price:", error);
+      console.error("❌ Error getting orderbook price:", error);
+      return null;
+    }
+  }
+
+  /**
+   * Get Binance futures price
+   */
+  private async getBinancePrice(): Promise<number | null> {
+    try {
+      // Try to get price from Binance futures first
+      const binancePrice = await this.binancePriceService.getFuturesPrice(
+        this.config.marketId
+      );
+      if (binancePrice) {
+        return binancePrice;
+      }
+
+      // Fallback to Binance futures mid price from orderbook
+      const binanceMidPrice = await this.binancePriceService.getFuturesMidPrice(
+        this.config.marketId
+      );
+      if (binanceMidPrice) {
+        return binanceMidPrice;
+      }
+
+      return null;
+    } catch (error) {
+      console.error("❌ Error getting Binance price:", error);
+      return null;
+    }
+  }
+
+  /**
+   * Get current market price - prioritize Binance futures price (legacy method)
+   */
+  private async getCurrentMarketPrice(): Promise<number | null> {
+    try {
+      // 1. Try to get price from Binance futures first (primary source)
+      const binancePrice = await this.binancePriceService.getFuturesPrice(
+        this.config.marketId
+      );
+      if (binancePrice) {
+        console.log(
+          `🎯 Using Binance futures price: $${binancePrice.toFixed(2)}`
+        );
+        return binancePrice;
+      }
+
+      // 2. Fallback to Binance futures mid price from orderbook
+      const binanceMidPrice = await this.binancePriceService.getFuturesMidPrice(
+        this.config.marketId
+      );
+      if (binanceMidPrice) {
+        console.log(
+          `🎯 Using Binance futures mid price: $${binanceMidPrice.toFixed(2)}`
+        );
+        return binanceMidPrice;
+      }
+
+      // 3. Fallback to local orderbook
+      const orderbook =
+        await this.compositeClient.indexerClient.markets.getPerpetualMarketOrderbook(
+          this.config.marketId
+        );
+
+      if (
+        orderbook &&
+        orderbook.bids &&
+        orderbook.bids.length > 0 &&
+        orderbook.asks &&
+        orderbook.asks.length > 0
+      ) {
+        const bestBid = parseFloat(orderbook.bids[0].price);
+        const bestAsk = parseFloat(orderbook.asks[0].price);
+        const localMidPrice = (bestBid + bestAsk) / 2;
+        console.log(
+          `🎯 Using local orderbook mid price: $${localMidPrice.toFixed(2)}`
+        );
+        return localMidPrice;
+      }
+
+      // 4. Final fallback to CoinGecko
+      const coinGeckoPrice = await this.coinGeckoService.getPrice(
+        this.config.marketId
+      );
+      if (coinGeckoPrice) {
+        console.log(
+          `🎯 Using CoinGecko fallback price: $${coinGeckoPrice.toFixed(2)}`
+        );
+        return coinGeckoPrice;
+      }
+
+      console.warn("⚠️ Could not get any market price from all sources");
+      return null;
+    } catch (error) {
+      console.error("❌ Error getting market price:", error);
       return null;
     }
   }

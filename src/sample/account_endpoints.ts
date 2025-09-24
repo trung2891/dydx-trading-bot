@@ -15,7 +15,7 @@ async function test(): Promise<void> {
   const network = getNetwork();
 
   const client = new IndexerClient(network.indexerConfig);
-  const address = "lfg10hqygpsfs7fvd0s43kw2qn9s0ff2ujw0us7m5w";
+  const address = "lfg1txsqranrjyg8ef994dspy0px2en959htwwvjq4";
 
   // Get subaccounts
   try {
@@ -23,9 +23,9 @@ async function test(): Promise<void> {
     console.log(response);
     const subaccounts = response.subaccounts;
     console.log(subaccounts);
-    const subaccount = subaccounts[0];
-    const subaccountNumber = subaccount.subaccountNumber;
-    console.log(subaccountNumber);
+    // const subaccount = subaccounts[0];
+    // const subaccountNumber = subaccount.subaccountNumber;
+    // console.log(subaccountNumber);
   } catch (error) {
     console.log(error);
     console.log(error.message);
@@ -43,7 +43,6 @@ async function test(): Promise<void> {
   //   console.log(error.message);
   // }
 
-  return;
   // Get asset positions
   try {
     const response = await client.account.getSubaccountAssetPositions(
@@ -51,12 +50,12 @@ async function test(): Promise<void> {
       0
     );
     console.log(response);
-    const positions = response.positions;
-    console.log(positions);
-    if (positions.length > 0) {
-      const positions0 = positions[0];
-      console.log(positions0);
-    }
+    // const positions = response.positions;
+    // console.log(positions);
+    // if (positions.length > 0) {
+    //   const positions0 = positions[0];
+    //   console.log(positions0);
+    // }
   } catch (error) {
     console.log(error.message);
   }
@@ -68,15 +67,17 @@ async function test(): Promise<void> {
       0
     );
     console.log(response);
-    const positions = response.positions;
-    console.log(positions);
-    if (positions.length > 0) {
-      const positions0 = positions[0];
-      console.log(positions0);
-    }
+    // const positions = response.positions;
+    // console.log(positions);
+    // if (positions.length > 0) {
+    //   const positions0 = positions[0];
+    //   console.log(positions0);
+    // }
   } catch (error) {
     console.log(error.message);
   }
+
+  return;
 
   // Get transfers
   try {

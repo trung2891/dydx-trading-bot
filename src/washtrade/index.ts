@@ -6,6 +6,7 @@
  */
 
 export { WashTradeBot } from "./wash-trade-bot";
+export { BinancePriceService } from "./binance-price-service";
 export {
   WashTradeConfig,
   WashTradeOrder,
