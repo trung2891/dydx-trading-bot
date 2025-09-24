@@ -29,7 +29,7 @@ const defaultConfig: MarketMakerConfig = {
     roundPrice: 3, // 3 decimal places for price
     roundSize: 4, // 4 decimal places for size
     useCoinGeckoFallback: true, // Use CoinGecko when orderbook has no price
-    coinGeckoSpread: 0.1, // 0.1% spread for CoinGecko fallback pricing
+    coinGeckoSpread: 0.01, // 0.1% spread for CoinGecko fallback pricing
   },
   riskParameters: {
     maxDrawdown: 5, // 5% maximum drawdown
