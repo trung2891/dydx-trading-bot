@@ -14,7 +14,7 @@ console.log("🚀 dYdX Market Maker Bot starting...");
 const defaultConfig: MarketMakerConfig = {
   marketId: "BTC-USD",
   spread: 0.05, // 0.1% spread
-  stepSize: 0.01, // 0.01% step size
+  stepSize: 0.001, // 0.01% step size
   orderSize: 0.02, // 0.001 BTC per order
   maxOrders: 2000, // 3 orders per side
   priceSteps: 1000, // 3 price levels
