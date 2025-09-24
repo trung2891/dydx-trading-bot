@@ -222,39 +222,66 @@ export class MarketMakerBot {
         `🔄 Refreshing orders for ${this.config.marketId} at mid price $${marketData.midPrice}`
       );
 
-      // 1. Cancel existing orders
-      const cancelStartTime = Date.now();
-      // await this.orderManager.cancelAllOrdersForMarket(
-      //   this.config.marketId,
-      //   this.config
-      // );
-      const cancelTime = Date.now() - cancelStartTime;
-      console.log(`🗑️  Order cancellation completed in ${cancelTime}ms`);
-
-      await sleep(1000); // Wait for cancellations to process
-
-      // 2. Sync with exchange to ensure clean state
-      const syncStartTime = Date.now();
-      await this.orderManager.syncOrdersWithExchange(this.config.marketId);
-      const syncTime = Date.now() - syncStartTime;
-      console.log(`🔄 Order sync completed in ${syncTime}ms`);
-
-      // 3. Place new orders
-      const placedOrders = await this.orderManager.placeOrdersAroundMidPrice(
+      // 1. Check if oracle strategy should be triggered
+      const oracleCheck = await this.orderManager.shouldTriggerOracleStrategy(
         this.config.marketId,
         marketData.midPrice,
         this.config
       );
 
+      let placedOrders: any[] = [];
+
+      if (oracleCheck.shouldTrigger && oracleCheck.oraclePrice) {
+        console.log(
+          `🚨 Oracle strategy triggered! Price difference: ${oracleCheck.priceDifferencePercentage.toFixed(
+            3
+          )}%`
+        );
+
+        // Use oracle-based strategy
+        placedOrders = await this.orderManager.placeOracleBasedOrders(
+          this.config.marketId,
+          marketData,
+          this.config
+        );
+      } else {
+        // Use standard market making strategy
+        console.log(
+          `📊 Using standard market making strategy (Oracle diff: ${oracleCheck.priceDifferencePercentage.toFixed(
+            3
+          )}%)`
+        );
+
+        // 1. Cancel existing orders
+        const cancelStartTime = Date.now();
+        // await this.orderManager.cancelAllOrdersForMarket(
+        //   this.config.marketId,
+        //   this.config
+        // );
+        const cancelTime = Date.now() - cancelStartTime;
+        console.log(`🗑️  Order cancellation completed in ${cancelTime}ms`);
+
+        await sleep(1000); // Wait for cancellations to process
+
+        // 2. Sync with exchange to ensure clean state
+        const syncStartTime = Date.now();
+        await this.orderManager.syncOrdersWithExchange(this.config.marketId);
+        const syncTime = Date.now() - syncStartTime;
+        console.log(`🔄 Order sync completed in ${syncTime}ms`);
+
+        // 3. Place new orders using standard strategy
+        placedOrders = await this.orderManager.placeOrdersAroundMidPrice(
+          this.config.marketId,
+          marketData.midPrice,
+          this.config
+        );
+      }
+
       const totalRefreshTime = Date.now() - refreshStartTime;
       console.log(
         `✅ Refreshed orders: ${placedOrders.length} new orders placed`
       );
-      console.log(
-        `🕒 Total refresh cycle: ${totalRefreshTime}ms (Cancel: ${cancelTime}ms, Sync: ${syncTime}ms, Place: ${
-          totalRefreshTime - cancelTime - syncTime - 1000
-        }ms)`
-      );
+      console.log(`🕒 Total refresh cycle: ${totalRefreshTime}ms`);
     } catch (error) {
       console.error(
         "❌ Error refreshing orders:",
@@ -386,6 +413,34 @@ export class MarketMakerBot {
       console.log(`🎪 Active Orders: ${orderStats.totalOrders}`);
       console.log(`💵 Total PnL: $${this.stats.totalPnl.toFixed(2)}`);
       console.log(`⏰ Uptime: ${Math.floor(uptime / 60)} minutes`);
+
+      // Log oracle strategy status if enabled
+      if (this.config.oracleStrategy?.enabled) {
+        const oracleCheck = await this.orderManager.shouldTriggerOracleStrategy(
+          this.config.marketId,
+          marketData.midPrice,
+          this.config
+        );
+
+        console.log(`🔮 Oracle Strategy Status:`);
+        console.log(`   Enabled: ${this.config.oracleStrategy.enabled}`);
+        console.log(
+          `   Threshold: ${this.config.oracleStrategy.oraclePriceThreshold}%`
+        );
+        console.log(
+          `   Current Difference: ${oracleCheck.priceDifferencePercentage.toFixed(
+            3
+          )}%`
+        );
+        console.log(
+          `   Oracle Price: ${
+            oracleCheck.oraclePrice ? `$${oracleCheck.oraclePrice}` : "N/A"
+          }`
+        );
+        console.log(
+          `   Strategy Active: ${oracleCheck.shouldTrigger ? "YES" : "NO"}`
+        );
+      }
     } catch (error) {
       console.error(
         "❌ Error logging status:",

@@ -14,7 +14,9 @@ import {
   OrderInfo,
   MarketMakerConfig,
   OrderType as MMOrderType,
+  MarketData,
 } from "./types";
+import { CoinGeckoService } from "./coingecko-service";
 import {
   generateRandomClientId,
   sleep,
@@ -30,10 +32,12 @@ export class OrderManager {
   private subaccount: SubaccountInfo;
   private activeOrders: Map<string, OrderInfo> = new Map(); // clientId -> OrderInfo
   private ordersByMarket: Map<string, Set<string>> = new Map(); // marketId -> Set<clientId>
+  private coinGeckoService: CoinGeckoService;
 
   constructor(compositeClient: CompositeClient, subaccount: SubaccountInfo) {
     this.compositeClient = compositeClient;
     this.subaccount = subaccount;
+    this.coinGeckoService = new CoinGeckoService();
   }
 
   /**
@@ -225,6 +229,297 @@ export class OrderManager {
         error instanceof Error ? error.message : String(error)
       );
       return placedOrders;
+    }
+  }
+
+  /**
+   * Place orders using oracle-based strategy.
+   * Compares current market price with CoinGecko oracle price and places orders
+   * when the difference exceeds the configured threshold.
+   */
+  async placeOracleBasedOrders(
+    marketId: string,
+    marketData: MarketData,
+    config: MarketMakerConfig
+  ): Promise<OrderInfo[]> {
+    const placedOrders: OrderInfo[] = [];
+
+    // Check if oracle strategy is enabled
+    if (!config.oracleStrategy?.enabled) {
+      console.log(`Oracle strategy not enabled for ${marketId}`);
+      return placedOrders;
+    }
+
+    const oracleConfig = config.oracleStrategy;
+    const startTime = Date.now();
+
+    try {
+      // Get oracle price from CoinGecko
+      const oraclePrice = await this.coinGeckoService.getPrice(marketId);
+      if (!oraclePrice || oraclePrice <= 0) {
+        console.warn(`⚠️ No valid oracle price available for ${marketId}`);
+        return placedOrders;
+      }
+
+      const currentPrice = marketData.midPrice;
+      const priceDifference = Math.abs(currentPrice - oraclePrice);
+      const priceDifferencePercentage = (priceDifference / oraclePrice) * 100;
+
+      console.log(`🔍 Oracle Analysis for ${marketId}:`);
+      console.log(`   Current Price: $${currentPrice}`);
+      console.log(`   Oracle Price: $${oraclePrice}`);
+      console.log(`   Difference: ${priceDifferencePercentage.toFixed(3)}%`);
+      console.log(`   Threshold: ${oracleConfig.oraclePriceThreshold}%`);
+
+      // Check if price difference exceeds threshold
+      if (priceDifferencePercentage < oracleConfig.oraclePriceThreshold) {
+        console.log(
+          `✅ Price difference ${priceDifferencePercentage.toFixed(
+            3
+          )}% is within threshold ${oracleConfig.oraclePriceThreshold}%`
+        );
+        return placedOrders;
+      }
+
+      console.log(
+        `🚨 Price difference ${priceDifferencePercentage.toFixed(
+          3
+        )}% exceeds threshold ${
+          oracleConfig.oraclePriceThreshold
+        }% - Using Oracle Strategy`
+      );
+
+      // Use oracle price as primary when oracle strategy is triggered
+      const primaryPrice = oraclePrice;
+      const isCurrentPriceHigher = currentPrice > oraclePrice;
+
+      console.log(`📊 Using Oracle price as primary: $${primaryPrice}`);
+
+      // Calculate oracle-based order prices using common config parameters
+      const { bidPrices, askPrices } = this.calculateOracleOrderPrices(
+        primaryPrice,
+        config
+      );
+
+      // Prepare order requests
+      const orderRequests: Array<{
+        side: OrderSide;
+        price: number;
+        size: number;
+        isOracleOrder: boolean;
+      }> = [];
+
+      // Prepare buy orders (bids) using common config parameters
+      for (let i = 0; i < Math.min(bidPrices.length, config.maxOrders); i++) {
+        const price = bidPrices[i];
+        const size = this.calculateOrderSize(config.orderSize, i);
+
+        if (isValidPrice(price) && isValidSize(size)) {
+          orderRequests.push({
+            side: OrderSide.BUY,
+            price,
+            size,
+            isOracleOrder: true,
+          });
+        }
+      }
+
+      // Prepare sell orders (asks) using common config parameters
+      for (let i = 0; i < Math.min(askPrices.length, config.maxOrders); i++) {
+        const price = askPrices[i];
+        const size = this.calculateOrderSize(config.orderSize, i);
+
+        if (isValidPrice(price) && isValidSize(size)) {
+          orderRequests.push({
+            side: OrderSide.SELL,
+            price,
+            size,
+            isOracleOrder: true,
+          });
+        }
+      }
+
+      // Shuffle order requests for better distribution
+      orderRequests.sort(() => Math.random() - 0.5);
+
+      console.log(
+        `📦 Placing ${orderRequests.length} oracle-based orders around $${primaryPrice}`
+      );
+
+      // Place orders
+      const batchSize = config.orderConfig.batchSize || 1;
+      const batchDelay = config.orderConfig.batchDelay || 100;
+
+      if (batchSize === 1) {
+        // Sequential placement
+        for (const request of orderRequests) {
+          const orderInfo = await this.placeOrder(
+            marketId,
+            request.side,
+            request.price,
+            request.size,
+            config
+          );
+
+          if (orderInfo) {
+            placedOrders.push(orderInfo);
+          }
+        }
+      } else {
+        // Batch placement
+        for (let i = 0; i < orderRequests.length; i += batchSize) {
+          const batch = orderRequests.slice(i, i + batchSize);
+          const batchNumber = Math.floor(i / batchSize) + 1;
+
+          console.log(
+            `📦 Processing oracle batch ${batchNumber} with ${batch.length} orders`
+          );
+
+          const batchPromises = batch.map((request) =>
+            this.placeOrder(
+              marketId,
+              request.side,
+              request.price,
+              request.size,
+              config
+            )
+          );
+
+          try {
+            const batchResults = await Promise.allSettled(batchPromises);
+            let batchSuccessCount = 0;
+
+            batchResults.forEach((result, index) => {
+              if (result.status === "fulfilled" && result.value) {
+                placedOrders.push(result.value);
+                batchSuccessCount++;
+              } else if (result.status === "rejected") {
+                const request = batch[index];
+                console.error(
+                  `❌ Failed to place oracle ${request.side} order at ${request.price}:`,
+                  result.reason
+                );
+              }
+            });
+
+            console.log(
+              `✅ Oracle batch ${batchNumber} completed: ${batchSuccessCount}/${batch.length} orders`
+            );
+
+            // Add delay between batches
+            if (i + batchSize < orderRequests.length && batchDelay > 0) {
+              await sleep(batchDelay);
+            }
+          } catch (error) {
+            console.error(`❌ Oracle batch placement error:`, error);
+          }
+        }
+      }
+
+      const endTime = Date.now();
+      const totalTime = endTime - startTime;
+
+      console.log(
+        `✅ Oracle Strategy: Placed ${placedOrders.length}/${orderRequests.length} orders for ${marketId}`
+      );
+      console.log(`⏱️  Oracle order placement time: ${totalTime}ms`);
+
+      return placedOrders;
+    } catch (error) {
+      console.error(
+        `❌ Error in oracle-based order placement for ${marketId}:`,
+        error instanceof Error ? error.message : String(error)
+      );
+      return placedOrders;
+    }
+  }
+
+  /**
+   * Calculate oracle-based order prices around the oracle price using common config parameters.
+   */
+  private calculateOracleOrderPrices(
+    oraclePrice: number,
+    config: MarketMakerConfig
+  ): { bidPrices: number[]; askPrices: number[] } {
+    const bidPrices: number[] = [];
+    const askPrices: number[] = [];
+    const halfSpread = config.spread / 2;
+    const stepSize = config.stepSize;
+
+    for (let i = 0; i < config.priceSteps; i++) {
+      const offset = (i + 1) * stepSize;
+      bidPrices.push(
+        roundPrice(
+          oraclePrice * (1 - (halfSpread + offset) / 100),
+          config.orderConfig.roundPrice || 3
+        )
+      );
+      askPrices.push(
+        roundPrice(
+          oraclePrice * (1 + (halfSpread + offset) / 100),
+          config.orderConfig.roundPrice || 3
+        )
+      );
+    }
+
+    return { bidPrices, askPrices };
+  }
+
+  /**
+   * Check if oracle strategy should be triggered based on price difference.
+   */
+  async shouldTriggerOracleStrategy(
+    marketId: string,
+    currentPrice: number,
+    config: MarketMakerConfig
+  ): Promise<{
+    shouldTrigger: boolean;
+    oraclePrice: number | null;
+    priceDifference: number;
+    priceDifferencePercentage: number;
+  }> {
+    if (!config.oracleStrategy?.enabled) {
+      return {
+        shouldTrigger: false,
+        oraclePrice: null,
+        priceDifference: 0,
+        priceDifferencePercentage: 0,
+      };
+    }
+
+    try {
+      const oraclePrice = await this.coinGeckoService.getPrice(marketId);
+      if (!oraclePrice || oraclePrice <= 0) {
+        return {
+          shouldTrigger: false,
+          oraclePrice: null,
+          priceDifference: 0,
+          priceDifferencePercentage: 0,
+        };
+      }
+
+      const priceDifference = Math.abs(currentPrice - oraclePrice);
+      const priceDifferencePercentage = (priceDifference / oraclePrice) * 100;
+      const shouldTrigger =
+        priceDifferencePercentage >= config.oracleStrategy.oraclePriceThreshold;
+
+      return {
+        shouldTrigger,
+        oraclePrice,
+        priceDifference,
+        priceDifferencePercentage,
+      };
+    } catch (error) {
+      console.error(
+        `❌ Error checking oracle strategy trigger for ${marketId}:`,
+        error instanceof Error ? error.message : String(error)
+      );
+      return {
+        shouldTrigger: false,
+        oraclePrice: null,
+        priceDifference: 0,
+        priceDifferencePercentage: 0,
+      };
     }
   }
 

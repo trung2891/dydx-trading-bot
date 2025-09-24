@@ -13,7 +13,7 @@ console.log("🚀 dYdX Market Maker Bot starting...");
 // Default configuration for BTC-USD market making
 const defaultConfig: MarketMakerConfig = {
   marketId: "BTC-USD",
-  spread: 0.1, // 0.1% spread
+  spread: 0.05, // 0.1% spread
   stepSize: 0.01, // 0.01% step size
   orderSize: 0.02, // 0.001 BTC per order
   maxOrders: 2000, // 3 orders per side
@@ -35,6 +35,10 @@ const defaultConfig: MarketMakerConfig = {
     maxDrawdown: 5, // 5% maximum drawdown
     stopLoss: 2, // 2% stop loss
     takeProfitRatio: 1.5, // 1.5:1 risk/reward ratio
+  },
+  oracleStrategy: {
+    enabled: true, // enable oracle-based strategy
+    oraclePriceThreshold: 0.5, // percentage difference to trigger oracle orders (e.g., 0.5 for 0.5%)
   },
 };
 

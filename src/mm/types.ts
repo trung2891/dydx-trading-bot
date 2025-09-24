@@ -35,6 +35,11 @@ export interface MarketMakerConfig {
     stopLoss: number; // stop loss percentage
     takeProfitRatio: number; // take profit ratio
   };
+  // Oracle strategy configuration
+  oracleStrategy?: {
+    enabled: boolean; // enable oracle-based strategy
+    oraclePriceThreshold: number; // percentage difference to trigger oracle orders (e.g., 0.5 for 0.5%)
+  };
 }
 
 export interface OrderInfo {

@@ -134,6 +134,116 @@ export function createConfig(
   };
 }
 
+// Oracle-based strategy configuration
+export const oracleStrategyConfig: MarketMakerConfig = {
+  marketId: "BTC-USD",
+  spread: 0.1, // Standard spread for normal market making
+  stepSize: 0.01,
+  orderSize: 0.001,
+  maxOrders: 5,
+  priceSteps: 5,
+  refreshInterval: 30000, // 30 seconds
+  maxPositionSize: 0.01,
+  orderType: OrderType.LONG_TERM,
+  orderConfig: {
+    goodTilTimeSeconds: 300,
+    batchSize: 5,
+    batchDelay: 100,
+  },
+  riskParameters: {
+    maxDrawdown: 5,
+    stopLoss: 2,
+    takeProfitRatio: 1.5,
+  },
+  // Oracle strategy configuration
+  oracleStrategy: {
+    enabled: true,
+    oraclePriceThreshold: 0.5, // Trigger when price differs by 0.5%
+  },
+};
+
+// Conservative oracle strategy (lower threshold, smaller orders)
+export const conservativeOracleConfig: MarketMakerConfig = {
+  marketId: "ETH-USD",
+  spread: 0.15,
+  stepSize: 0.01,
+  orderSize: 0.005,
+  maxOrders: 3,
+  priceSteps: 3,
+  refreshInterval: 60000, // 1 minute
+  maxPositionSize: 0.05,
+  orderType: OrderType.LONG_TERM,
+  orderConfig: {
+    goodTilTimeSeconds: 600,
+    batchSize: 3,
+    batchDelay: 200,
+  },
+  riskParameters: {
+    maxDrawdown: 3,
+    stopLoss: 1.5,
+    takeProfitRatio: 2,
+  },
+  oracleStrategy: {
+    enabled: true,
+    oraclePriceThreshold: 0.3, // Lower threshold (0.3%)
+  },
+};
+
+// Aggressive oracle strategy (higher threshold, larger orders)
+export const aggressiveOracleConfig: MarketMakerConfig = {
+  marketId: "SOL-USD",
+  spread: 0.08,
+  stepSize: 0.01,
+  orderSize: 0.1,
+  maxOrders: 7,
+  priceSteps: 7,
+  refreshInterval: 15000, // 15 seconds
+  maxPositionSize: 1.0,
+  orderType: OrderType.SHORT_TERM,
+  orderConfig: {
+    goodTilBlocks: 10,
+    batchSize: 10,
+    batchDelay: 50,
+  },
+  riskParameters: {
+    maxDrawdown: 8,
+    stopLoss: 3,
+    takeProfitRatio: 1.2,
+  },
+  oracleStrategy: {
+    enabled: true,
+    oraclePriceThreshold: 1.0, // Higher threshold (1.0%)
+  },
+};
+
+// Multi-asset oracle configurations
+export const btcOracleConfig: MarketMakerConfig = {
+  ...oracleStrategyConfig,
+  marketId: "BTC-USD",
+  oracleStrategy: {
+    enabled: true,
+    oraclePriceThreshold: 0.4,
+  },
+};
+
+export const ethOracleConfig: MarketMakerConfig = {
+  ...oracleStrategyConfig,
+  marketId: "ETH-USD",
+  oracleStrategy: {
+    enabled: true,
+    oraclePriceThreshold: 0.6,
+  },
+};
+
+export const solOracleConfig: MarketMakerConfig = {
+  ...oracleStrategyConfig,
+  marketId: "SOL-USD",
+  oracleStrategy: {
+    enabled: true,
+    oraclePriceThreshold: 0.8,
+  },
+};
+
 // Environment-based configuration
 export function getConfigFromEnv(): MarketMakerConfig {
   const orderType =
@@ -141,7 +251,7 @@ export function getConfigFromEnv(): MarketMakerConfig {
       ? OrderType.SHORT_TERM
       : OrderType.LONG_TERM;
 
-  return createConfig(process.env.MARKET_ID || "BTC-USD", orderType, {
+  const config = createConfig(process.env.MARKET_ID || "BTC-USD", orderType, {
     spread: parseFloat(process.env.SPREAD || "0.1"),
     orderSize: parseFloat(process.env.ORDER_SIZE || "0.001"),
     maxOrders: parseInt(process.env.MAX_ORDERS || "3"),
@@ -151,4 +261,16 @@ export function getConfigFromEnv(): MarketMakerConfig {
       goodTilBlocks: parseInt(process.env.GOOD_TIL_BLOCKS || "20"),
     },
   });
+
+  // Add oracle strategy if enabled via environment
+  if (process.env.ORACLE_STRATEGY_ENABLED === "true") {
+    config.oracleStrategy = {
+      enabled: true,
+      oraclePriceThreshold: parseFloat(
+        process.env.ORACLE_PRICE_THRESHOLD || "0.5"
+      ),
+    };
+  }
+
+  return config;
 }
