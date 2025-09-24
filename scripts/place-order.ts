@@ -4,10 +4,10 @@ import {
   Order_TimeInForce,
   CompositeClient,
   MAX_UINT_32,
-} from "@dydxprotocol/v4-client-js";
-import { Network, OrderSide } from "@dydxprotocol/v4-client-js";
-import { LocalWallet } from "@dydxprotocol/v4-client-js";
-import { SubaccountInfo } from "@dydxprotocol/v4-client-js";
+} from "@oraichain/lfg-client-js";
+import { Network, OrderSide } from "@oraichain/lfg-client-js";
+import { LocalWallet } from "@oraichain/lfg-client-js";
+import { SubaccountInfo } from "@oraichain/lfg-client-js";
 import "dotenv/config";
 
 /**

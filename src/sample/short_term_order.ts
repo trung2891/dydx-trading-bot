@@ -6,11 +6,12 @@ import {
   Order_TimeInForce,
   CompositeClient,
   MAX_UINT_32,
-} from "@dydxprotocol/v4-client-js";
-import { OrderBatchWithMarketId } from "@dydxprotocol/v4-client-js/src/clients/composite-client";
-import { Network, OrderSide } from "@dydxprotocol/v4-client-js";
-import { LocalWallet } from "@dydxprotocol/v4-client-js";
-import { SubaccountInfo } from "@dydxprotocol/v4-client-js";
+} from "@oraichain/lfg-client-js";
+import { OrderBatchWithMarketId } from "@oraichain/lfg-client-js/src/clients/composite-client";
+import { Network, OrderSide } from "@oraichain/lfg-client-js";
+import { LocalWallet } from "@oraichain/lfg-client-js";
+import { SubaccountInfo } from "@oraichain/lfg-client-js";
+import { getNetwork } from "./common";
 
 const MAX_CLIENT_ID = 2 ** 32 - 1;
 
@@ -81,11 +82,11 @@ async function test(): Promise<void> {
   try {
     const wallet = await LocalWallet.fromMnemonic(
       process.env.DYDX_TEST_MNEMONIC!,
-      BECH32_PREFIX
+      "lfg"
     );
     // console.log("**Wallet**", wallet);
 
-    const network = Network.mainnet();
+    const network = getNetwork();
     const client = await CompositeClient.connect(network);
     // console.log("**Client**", client);
 

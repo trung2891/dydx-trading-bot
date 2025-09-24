@@ -14,18 +14,18 @@ import {
   OrderExecution,
   OrderFlags,
   ValidatorClient,
-} from "@dydxprotocol/v4-client-js";
-import { OrderBatchWithMarketId } from "@dydxprotocol/v4-client-js/src/clients/composite-client";
-import { Network, OrderSide } from "@dydxprotocol/v4-client-js";
-import { LocalWallet } from "@dydxprotocol/v4-client-js";
-import { SubaccountInfo } from "@dydxprotocol/v4-client-js";
+} from "@oraichain/lfg-client-js";
+import { OrderBatchWithMarketId } from "@oraichain/lfg-client-js/src/clients/composite-client";
+import { Network, OrderSide } from "@oraichain/lfg-client-js";
+import { LocalWallet } from "@oraichain/lfg-client-js";
+import { SubaccountInfo } from "@oraichain/lfg-client-js";
 
 const MAX_CLIENT_ID = 2 ** 32 - 1;
 
 async function test(): Promise<void> {
   const wallet = await LocalWallet.fromMnemonic(
-    process.env.DYDX_TEST_MNEMONIC,
-    BECH32_PREFIX
+    process.env.DYDX_TEST_MNEMONIC!,
+    "lfg"
   );
   // console.log(wallet);
   const network = Network.mainnet();

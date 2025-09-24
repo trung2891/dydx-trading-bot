@@ -1,4 +1,4 @@
-import { OrderSide } from "@dydxprotocol/v4-client-js";
+import { OrderSide } from "@oraichain/lfg-client-js";
 
 export enum OrderType {
   SHORT_TERM = "SHORT_TERM",

@@ -9,7 +9,7 @@ import {
   OrderTimeInForce,
   OrderExecution,
   OrderFlags,
-} from "@dydxprotocol/v4-client-js";
+} from "@oraichain/lfg-client-js";
 import {
   OrderInfo,
   MarketMakerConfig,
@@ -117,13 +117,13 @@ export class OrderManager {
       } else {
         // Batch placement
         for (let i = 0; i < orderRequests.length; i += batchSize) {
-          if (config.orderType === MMOrderType.SHORT_TERM) {
-            currentBlock =
-              await this.compositeClient.validatorClient.get.latestBlockHeight();
-            console.log(
-              `📏 Current block height: ${currentBlock} (for batch optimization)`
-            );
-          }
+          // if (config.orderType === MMOrderType.SHORT_TERM) {
+          //   currentBlock =
+          //     await this.compositeClient.validatorClient.get.latestBlockHeight();
+          //   console.log(
+          //     `📏 Current block height: ${currentBlock} (for batch optimization)`
+          //   );
+          // }
 
           const batch = orderRequests.slice(i, i + batchSize);
           const batchNumber = Math.floor(i / batchSize) + 1;

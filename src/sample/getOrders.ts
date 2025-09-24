@@ -8,9 +8,9 @@ import {
   OrderSide,
   OrderStatus,
   TickerType,
-} from "@dydxprotocol/v4-client-js";
+} from "@oraichain/lfg-client-js";
 // import { IndexerClient } from "../src/clients/indexer-client";
-import { IndexerClient } from "@dydxprotocol/v4-client-js";
+import { IndexerClient } from "@oraichain/lfg-client-js";
 import { getNetwork } from "./common";
 // import { DYDX_TEST_ADDRESS } from "./constants";
 

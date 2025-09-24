@@ -3,24 +3,19 @@
  */
 
 // import { Network } from "../src/clients/constants";
-import { Network } from "@dydxprotocol/v4-client-js";
+import { Network } from "@oraichain/lfg-client-js";
 // import { IndexerClient } from "../src/clients/indexer-client";
-import { IndexerClient } from "@dydxprotocol/v4-client-js";
+import { IndexerClient } from "@oraichain/lfg-client-js";
+import { getNetwork } from "./common";
 // import { DYDX_TEST_ADDRESS } from "./constants";
 
 async function test(): Promise<void> {
   // console.log(Network.mainnet().indexerConfig);
 
-  const network = Network.mainnet();
-
-  network.indexerConfig.restEndpoint = "http://65.109.74.254:3002";
-  network.indexerConfig.websocketEndpoint = "http://65.109.74.254:3003";
-
-  // network.validatorConfig.restEndpoint = "http://65.109.74.254:56657";
-  // network.validatorConfig.chainId = "testing";
+  const network = getNetwork();
 
   const client = new IndexerClient(network.indexerConfig);
-  const address = "dydx10hqygpsfs7fvd0s43kw2qn9s0ff2ujw0cn0tz7";
+  const address = "lfg10hqygpsfs7fvd0s43kw2qn9s0ff2ujw0us7m5w";
 
   // Get subaccounts
   try {

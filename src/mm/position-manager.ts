@@ -1,4 +1,4 @@
-import { CompositeClient, SubaccountInfo } from "@dydxprotocol/v4-client-js";
+import { CompositeClient, SubaccountInfo } from "@oraichain/lfg-client-js";
 import { Position, BalanceInfo } from "./types";
 
 export class PositionManager {
@@ -133,6 +133,7 @@ export class PositionManager {
       console.log(`💰 Fetched balances for ${this.balancesCache.size} assets`);
       return this.balancesCache;
     } catch (error) {
+      console.log(error);
       console.error(
         "❌ Error fetching balances:",
         error instanceof Error ? error.message : String(error)

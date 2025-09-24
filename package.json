@@ -37,7 +37,7 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "@dydxprotocol/v4-client-js": "^1.0.0",
+    "@oraichain/lfg-client-js": "^1.0.1",
     "@types/lodash": "^4.17.20",
     "dotenv": "^16.0.0",
     "lodash": "^4.17.21"

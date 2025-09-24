@@ -19,7 +19,7 @@ import {
   OrderStatus,
   TickerType,
   OrderFlags,
-} from "@dydxprotocol/v4-client-js";
+} from "@oraichain/lfg-client-js";
 
 function getDefaultNetwork(): Network {
   const network = Network.mainnet();

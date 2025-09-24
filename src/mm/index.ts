@@ -22,4 +22,4 @@ export {
   LocalWallet,
   SubaccountInfo,
   BECH32_PREFIX,
-} from "@dydxprotocol/v4-client-js";
+} from "@oraichain/lfg-client-js";

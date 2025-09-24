@@ -5,7 +5,7 @@ import {
   SubaccountInfo,
   BECH32_PREFIX,
   Network,
-} from "@dydxprotocol/v4-client-js";
+} from "@oraichain/lfg-client-js";
 
 import { MarketDataManager } from "./market-data";
 import { OrderManager } from "./order-manager";
@@ -76,7 +76,7 @@ export class MarketMakerBot {
       console.log("✅ Composite client connected");
 
       // Initialize subaccount
-      this.subaccount = new SubaccountInfo(this.wallet, 0);
+      this.subaccount = SubaccountInfo.forLocalWallet(this.wallet, 0);
       console.log(`✅ Subaccount initialized: ${this.subaccount.address}`);
 
       // Initialize managers

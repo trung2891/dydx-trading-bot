@@ -4,7 +4,7 @@
  */
 
 import "dotenv/config";
-import { Network } from "@dydxprotocol/v4-client-js";
+import { Network } from "@oraichain/lfg-client-js";
 import { MarketDataManager, CoinGeckoService } from "../src/mm";
 
 // Test markets

@@ -1,4 +1,4 @@
-import { IndexerClient, Network } from "@dydxprotocol/v4-client-js";
+import { IndexerClient, Network } from "@oraichain/lfg-client-js";
 import { MarketData, OrderBook, OrderBookEntry } from "./types";
 import { calculateMidPrice, getCurrentTimestamp } from "./utils";
 import { CoinGeckoService } from "./coingecko-service";

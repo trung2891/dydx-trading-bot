@@ -1,4 +1,4 @@
-import { Network } from "@dydxprotocol/v4-client-js";
+import { Network } from "@oraichain/lfg-client-js";
 
 export const getNetwork = () => {
   const network = Network.mainnet();

@@ -1,4 +1,4 @@
-import { MAX_UINT_32 } from "@dydxprotocol/v4-client-js";
+import { MAX_UINT_32 } from "@oraichain/lfg-client-js";
 
 /**
  * Returns a random integer value between 0 and (n-1).
