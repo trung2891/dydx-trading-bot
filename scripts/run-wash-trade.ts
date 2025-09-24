@@ -35,11 +35,11 @@ const marketId = marketArg ? marketArg.split("=")[1] : undefined;
 
 const defaultConfig: WashTradeConfig = {
   marketId: "BTC-USD",
-  volumeTarget: 200000, // $200000 per hour
+  volumeTarget: 2000000, // $200000 per hour
   orderSize: 0.01, // 0.01 BTC per order
   spread: 0.05, // 0.05% spread
-  minInterval: 500, // 0.5 seconds minimum between trades
-  maxInterval: 3000, // 3 seconds maximum between trades
+  minInterval: 100, // 0.5 seconds minimum between trades
+  maxInterval: 2000, // 3 seconds maximum between trades
   priceVariation: 0.02, // 0.02% price variation
   orderConfig: {
     goodTilBlocks: 20, // 5 blocks expiration
@@ -49,14 +49,14 @@ const defaultConfig: WashTradeConfig = {
     roundSize: 4,
   },
   riskParameters: {
-    maxPositionSize: 0.1, // Maximum 0.1 BTC position
-    stopLoss: 0.25, // 0.25% stop loss
-    maxDrawdown: 0.5, // 0.5% maximum drawdown
+    maxPositionSize: 100, // Maximum 0.1 BTC position
+    stopLoss: 1, // 0.25% stop loss
+    maxDrawdown: 10, // 0.5% maximum drawdown
   },
   volumeStrategy: {
     type: "BURST",
     burstSize: 5, // 5 trades per burst
-    burstInterval: 10000, // 10 seconds between bursts
+    burstInterval: 5000, // 10 seconds between bursts
   },
 };
 
