@@ -97,6 +97,11 @@ export class OrderManager {
         }
       }
 
+      // suffle orderRequests
+      orderRequests.sort(() => Math.random() - 0.5);
+
+      console.log(orderRequests);
+
       // Place orders in batches
       if (batchSize === 1) {
         // Sequential placement (original behavior)
