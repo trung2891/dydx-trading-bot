@@ -32,8 +32,8 @@ const defaultConfig: MarketMakerConfig = {
     coinGeckoSpread: 0.01, // 0.1% spread for CoinGecko fallback pricing
   },
   riskParameters: {
-    maxDrawdown: 5, // 5% maximum drawdown
-    stopLoss: 2, // 2% stop loss
+    maxDrawdown: 100, // 5% maximum drawdown
+    stopLoss: 20, // 2% stop loss
     takeProfitRatio: 1.5, // 1.5:1 risk/reward ratio
   },
   oracleStrategy: {
