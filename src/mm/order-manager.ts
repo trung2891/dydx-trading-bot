@@ -943,7 +943,7 @@ export class OrderManager {
    */
   private calculateOrderSize(baseSize: number, level: number): number {
     // Slightly increase size for orders further from mid price
-    const sizeMultiplier = 1 + level * 0.1;
+    const sizeMultiplier = 1 + level * 0.01;
     return roundSize(baseSize * sizeMultiplier);
   }
 

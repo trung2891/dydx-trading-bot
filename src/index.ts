@@ -26,8 +26,8 @@ const defaultConfig: MarketMakerConfig = {
     goodTilBlocks: 20, // 5 blocks for short-term orders (if switched)
     batchSize: 200, // Place 1000 orders per batch
     batchDelay: 100, // 100ms delay between batches
-    roundPrice: 3, // 3 decimal places for price
-    roundSize: 4, // 4 decimal places for size
+    roundPrice: 4, // 3 decimal places for price
+    roundSize: 5, // 4 decimal places for size
     useCoinGeckoFallback: true, // Use CoinGecko when orderbook has no price
     coinGeckoSpread: 0.01, // 0.1% spread for CoinGecko fallback pricing
   },
