@@ -27,7 +27,9 @@ export interface MarketMakerConfig {
     roundPrice?: number; // number of decimal places to round the price (default: 3)
     roundSize?: number; // number of decimal places to round the size (default: 4)
     // Fallback settings
-    useCoinGeckoFallback?: boolean; // use CoinGecko when orderbook has no price (default: true)
+    useBinanceFallback?: boolean; // use Binance futures when orderbook has no price (default: true)
+    binanceSpread?: number; // spread percentage for Binance futures fallback (default: 0.1%)
+    useCoinGeckoFallback?: boolean; // use CoinGecko when orderbook has no price (default: false)
     coinGeckoSpread?: number; // spread percentage for CoinGecko fallback (default: 0.1%)
   };
   riskParameters: {
@@ -39,6 +41,7 @@ export interface MarketMakerConfig {
   oracleStrategy?: {
     enabled: boolean; // enable oracle-based strategy
     oraclePriceThreshold: number; // percentage difference to trigger oracle orders (e.g., 0.5 for 0.5%)
+    provider: "binance" | "coingecko"; // oracle price provider (default: "binance")
   };
 }
 

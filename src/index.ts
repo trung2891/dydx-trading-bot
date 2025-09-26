@@ -28,6 +28,8 @@ const defaultConfig: MarketMakerConfig = {
     batchDelay: 100, // 100ms delay between batches
     roundPrice: 4, // 3 decimal places for price
     roundSize: 5, // 4 decimal places for size
+    useBinanceFallback: true, // Use Binance futures when orderbook has no price
+    binanceSpread: 0.01, // 0.1% spread for Binance futures fallback pricing
     useCoinGeckoFallback: true, // Use CoinGecko when orderbook has no price
     coinGeckoSpread: 0.01, // 0.1% spread for CoinGecko fallback pricing
   },
@@ -39,6 +41,7 @@ const defaultConfig: MarketMakerConfig = {
   oracleStrategy: {
     enabled: true, // enable oracle-based strategy
     oraclePriceThreshold: 0.01, // percentage difference to trigger oracle orders (e.g., 0.5 for 0.5%)
+    provider: "binance", // Use Binance futures for oracle prices
   },
 };
 

@@ -97,8 +97,11 @@ export class MarketMakerBot {
         this.config.marketId,
         false,
         {
+          useBinanceFallback: this.config.orderConfig.useBinanceFallback,
+          binanceSpread: this.config.orderConfig.binanceSpread,
           useCoinGeckoFallback: this.config.orderConfig.useCoinGeckoFallback,
           coinGeckoSpread: this.config.orderConfig.coinGeckoSpread,
+          oracleProvider: this.config.oracleStrategy?.provider,
         }
       );
       if (!marketData) {
@@ -174,8 +177,11 @@ export class MarketMakerBot {
       this.config.marketId,
       false,
       {
+        useBinanceFallback: this.config.orderConfig.useBinanceFallback,
+        binanceSpread: this.config.orderConfig.binanceSpread,
         useCoinGeckoFallback: this.config.orderConfig.useCoinGeckoFallback,
         coinGeckoSpread: this.config.orderConfig.coinGeckoSpread,
+        oracleProvider: this.config.oracleStrategy?.provider,
       }
     );
     if (!marketData) {

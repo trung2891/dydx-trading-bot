@@ -2,7 +2,7 @@
  * Example script demonstrating the Oracle-based Market Making Strategy
  *
  * This example shows how to use the oracle strategy that:
- * 1. Compares current market price with CoinGecko oracle price
+ * 1. Compares current market price with configurable oracle price (Binance futures or CoinGecko)
  * 2. Triggers oracle-based orders when price difference exceeds threshold
  * 3. Places bid/ask orders around the oracle price
  */
@@ -13,6 +13,9 @@ import {
   oracleStrategyConfig,
   conservativeOracleConfig,
   aggressiveOracleConfig,
+  binanceOracleConfig,
+  coinGeckoOracleConfig,
+  hybridConfig,
 } from "./config-examples";
 
 async function runOracleStrategyExample() {
@@ -108,6 +111,90 @@ async function runOracleStrategyExample() {
   } catch (error) {
     console.error("❌ Error in aggressive oracle strategy:", error);
   }
+
+  // Example 4: Binance Oracle Strategy
+  console.log("\n📊 Example 4: Binance Oracle Strategy (BTC-USD)");
+  console.log("Configuration:");
+  console.log(
+    `- Oracle Provider: ${binanceOracleConfig.oracleStrategy?.provider}`
+  );
+  console.log(
+    `- Oracle Price Threshold: ${binanceOracleConfig.oracleStrategy?.oraclePriceThreshold}%`
+  );
+  console.log(`- Standard Spread: ${binanceOracleConfig.spread}%`);
+
+  const bot4 = new MarketMakerBot(binanceOracleConfig);
+
+  try {
+    await bot4.initialize();
+    console.log("✅ Binance Oracle Strategy Bot initialized");
+
+    setTimeout(async () => {
+      await bot4.stop();
+      console.log("✅ Binance Oracle Strategy example completed");
+    }, 120000); // 2 minutes
+
+    await bot4.start();
+  } catch (error) {
+    console.error("❌ Error in Binance oracle strategy:", error);
+  }
+
+  // Example 5: CoinGecko Oracle Strategy
+  console.log("\n📊 Example 5: CoinGecko Oracle Strategy (ETH-USD)");
+  console.log("Configuration:");
+  console.log(
+    `- Oracle Provider: ${coinGeckoOracleConfig.oracleStrategy?.provider}`
+  );
+  console.log(
+    `- Oracle Price Threshold: ${coinGeckoOracleConfig.oracleStrategy?.oraclePriceThreshold}%`
+  );
+  console.log(`- Standard Spread: ${coinGeckoOracleConfig.spread}%`);
+
+  const bot5 = new MarketMakerBot(coinGeckoOracleConfig);
+
+  try {
+    await bot5.initialize();
+    console.log("✅ CoinGecko Oracle Strategy Bot initialized");
+
+    setTimeout(async () => {
+      await bot5.stop();
+      console.log("✅ CoinGecko Oracle Strategy example completed");
+    }, 120000); // 2 minutes
+
+    await bot5.start();
+  } catch (error) {
+    console.error("❌ Error in CoinGecko oracle strategy:", error);
+  }
+
+  // Example 6: Hybrid Configuration
+  console.log("\n📊 Example 6: Hybrid Configuration (SOL-USD)");
+  console.log("Configuration:");
+  console.log(`- Oracle Provider: ${hybridConfig.oracleStrategy?.provider}`);
+  console.log(
+    `- Binance Fallback: ${hybridConfig.orderConfig.useBinanceFallback}`
+  );
+  console.log(
+    `- CoinGecko Fallback: ${hybridConfig.orderConfig.useCoinGeckoFallback}`
+  );
+  console.log(
+    `- Oracle Price Threshold: ${hybridConfig.oracleStrategy?.oraclePriceThreshold}%`
+  );
+
+  const bot6 = new MarketMakerBot(hybridConfig);
+
+  try {
+    await bot6.initialize();
+    console.log("✅ Hybrid Configuration Bot initialized");
+
+    setTimeout(async () => {
+      await bot6.stop();
+      console.log("✅ Hybrid Configuration example completed");
+    }, 120000); // 2 minutes
+
+    await bot6.start();
+  } catch (error) {
+    console.error("❌ Error in hybrid configuration:", error);
+  }
 }
 
 // Example of how to create a custom oracle strategy
@@ -138,6 +225,7 @@ function createCustomOracleStrategy() {
     oracleStrategy: {
       enabled: true,
       oraclePriceThreshold: 0.7, // Custom threshold: 0.7%
+      provider: "binance", // Use Binance futures as oracle
     },
   };
 
@@ -155,12 +243,14 @@ function demonstrateEnvironmentConfig() {
   // Set environment variables for oracle strategy
   process.env.ORACLE_STRATEGY_ENABLED = "true";
   process.env.ORACLE_PRICE_THRESHOLD = "0.6";
+  process.env.ORACLE_PROVIDER = "binance";
 
   console.log("Environment Variables Set:");
   console.log(
     `ORACLE_STRATEGY_ENABLED: ${process.env.ORACLE_STRATEGY_ENABLED}`
   );
   console.log(`ORACLE_PRICE_THRESHOLD: ${process.env.ORACLE_PRICE_THRESHOLD}%`);
+  console.log(`ORACLE_PROVIDER: ${process.env.ORACLE_PROVIDER}`);
 }
 
 // Main execution
@@ -171,7 +261,7 @@ if (require.main === module) {
     "This example demonstrates different oracle-based market making strategies."
   );
   console.log(
-    "The oracle strategy uses CoinGecko prices as a reference and places"
+    "The oracle strategy uses configurable price sources (Binance futures or CoinGecko) as a reference and places"
   );
   console.log(
     "orders when the current market price differs significantly from the oracle price.\n"

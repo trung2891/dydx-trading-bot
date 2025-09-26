@@ -1,10 +1,12 @@
 import { IndexerClient, Network } from "@oraichain/lfg-client-js";
 import { MarketData, OrderBook, OrderBookEntry } from "./types";
 import { calculateMidPrice, getCurrentTimestamp } from "./utils";
+import { BinancePriceService } from "./binance-price-service";
 import { CoinGeckoService } from "./coingecko-service";
 
 export class MarketDataManager {
   private indexerClient: IndexerClient;
+  private binancePriceService: BinancePriceService;
   private coinGeckoService: CoinGeckoService;
   private marketDataCache: Map<string, MarketData> = new Map();
   private orderBookCache: Map<string, OrderBook> = new Map();
@@ -13,6 +15,7 @@ export class MarketDataManager {
 
   constructor(network: Network) {
     this.indexerClient = new IndexerClient(network.indexerConfig);
+    this.binancePriceService = new BinancePriceService();
     this.coinGeckoService = new CoinGeckoService();
   }
 
@@ -22,7 +25,13 @@ export class MarketDataManager {
   async getMarketData(
     marketId: string,
     forceRefresh: boolean = false,
-    config?: { useCoinGeckoFallback?: boolean; coinGeckoSpread?: number }
+    config?: {
+      useBinanceFallback?: boolean;
+      binanceSpread?: number;
+      useCoinGeckoFallback?: boolean;
+      coinGeckoSpread?: number;
+      oracleProvider?: "binance" | "coingecko";
+    }
   ): Promise<MarketData | null> {
     try {
       const lastUpdate = this.lastUpdateTime.get(marketId) || 0;
@@ -68,37 +77,74 @@ export class MarketDataManager {
 
       let midPrice = calculateMidPrice(bestBid, bestAsk);
 
-      // Fallback to CoinGecko if no valid orderbook price and fallback is enabled
-      if (midPrice <= 0 && config?.useCoinGeckoFallback !== false) {
-        console.warn(
-          `⚠️ No valid orderbook price for ${marketId}, falling back to CoinGecko`
-        );
-        const coinGeckoPrice = await this.coinGeckoService.getPrice(marketId);
+      // Fallback to oracle provider if no valid orderbook price and fallback is enabled
+      if (midPrice <= 0) {
+        const oracleProvider = config?.oracleProvider || "binance";
 
-        if (coinGeckoPrice && coinGeckoPrice > 0) {
-          midPrice = coinGeckoPrice;
-          // Set reasonable bid/ask spread (configurable, default 0.1% around CoinGecko price)
-          const spread = (config?.coinGeckoSpread || 0.1) / 100; // Convert percentage to decimal
-          bestBid = midPrice * (1 - spread);
-          bestAsk = midPrice * (1 + spread);
-          bidSize = 0; // No actual orderbook size available
-          askSize = 0;
-          console.log(
-            `✅ Using CoinGecko price as fallback: $${midPrice} for ${marketId} (spread: ${(
-              spread * 100
-            ).toFixed(2)}%)`
+        if (
+          oracleProvider === "binance" &&
+          config?.useBinanceFallback !== false
+        ) {
+          console.warn(
+            `⚠️ No valid orderbook price for ${marketId}, falling back to Binance futures`
           );
+          const binancePrice = await this.binancePriceService.getPrice(
+            marketId
+          );
+
+          if (binancePrice && binancePrice > 0) {
+            midPrice = binancePrice;
+            // Set reasonable bid/ask spread (configurable, default 0.1% around Binance price)
+            const spread = (config?.binanceSpread || 0.1) / 100; // Convert percentage to decimal
+            bestBid = midPrice * (1 - spread);
+            bestAsk = midPrice * (1 + spread);
+            bidSize = 0; // No actual orderbook size available
+            askSize = 0;
+            console.log(
+              `✅ Using Binance futures price as fallback: $${midPrice} for ${marketId} (spread: ${(
+                spread * 100
+              ).toFixed(2)}%)`
+            );
+          } else {
+            console.error(
+              `❌ Failed to get fallback price from Binance futures for ${marketId}`
+            );
+            return null;
+          }
+        } else if (
+          oracleProvider === "coingecko" &&
+          config?.useCoinGeckoFallback !== false
+        ) {
+          console.warn(
+            `⚠️ No valid orderbook price for ${marketId}, falling back to CoinGecko`
+          );
+          const coinGeckoPrice = await this.coinGeckoService.getPrice(marketId);
+
+          if (coinGeckoPrice && coinGeckoPrice > 0) {
+            midPrice = coinGeckoPrice;
+            // Set reasonable bid/ask spread (configurable, default 0.1% around CoinGecko price)
+            const spread = (config?.coinGeckoSpread || 0.1) / 100; // Convert percentage to decimal
+            bestBid = midPrice * (1 - spread);
+            bestAsk = midPrice * (1 + spread);
+            bidSize = 0; // No actual orderbook size available
+            askSize = 0;
+            console.log(
+              `✅ Using CoinGecko price as fallback: $${midPrice} for ${marketId} (spread: ${(
+                spread * 100
+              ).toFixed(2)}%)`
+            );
+          } else {
+            console.error(
+              `❌ Failed to get fallback price from CoinGecko for ${marketId}`
+            );
+            return null;
+          }
         } else {
           console.error(
-            `❌ Failed to get fallback price from CoinGecko for ${marketId}`
+            `❌ No valid price data available for ${marketId} (${oracleProvider} fallback disabled)`
           );
           return null;
         }
-      } else if (midPrice <= 0) {
-        console.error(
-          `❌ No valid price data available for ${marketId} (CoinGecko fallback disabled)`
-        );
-        return null;
       }
 
       const marketData: MarketData = {

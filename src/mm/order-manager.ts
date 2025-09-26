@@ -16,6 +16,7 @@ import {
   OrderType as MMOrderType,
   MarketData,
 } from "./types";
+import { BinancePriceService } from "./binance-price-service";
 import { CoinGeckoService } from "./coingecko-service";
 import {
   generateRandomClientId,
@@ -32,11 +33,13 @@ export class OrderManager {
   private subaccount: SubaccountInfo;
   private activeOrders: Map<string, OrderInfo> = new Map(); // clientId -> OrderInfo
   private ordersByMarket: Map<string, Set<string>> = new Map(); // marketId -> Set<clientId>
+  private binancePriceService: BinancePriceService;
   private coinGeckoService: CoinGeckoService;
 
   constructor(compositeClient: CompositeClient, subaccount: SubaccountInfo) {
     this.compositeClient = compositeClient;
     this.subaccount = subaccount;
+    this.binancePriceService = new BinancePriceService();
     this.coinGeckoService = new CoinGeckoService();
   }
 
@@ -254,10 +257,22 @@ export class OrderManager {
     const startTime = Date.now();
 
     try {
-      // Get oracle price from CoinGecko
-      const oraclePrice = await this.coinGeckoService.getPrice(marketId);
+      // Get oracle price based on configured provider
+      const oracleProvider = config.oracleStrategy?.provider || "binance";
+      let oraclePrice: number | null = null;
+
+      if (oracleProvider === "binance") {
+        console.log(`🔍 Using Binance futures as oracle for ${marketId}`);
+        oraclePrice = await this.binancePriceService.getPrice(marketId);
+      } else if (oracleProvider === "coingecko") {
+        console.log(`🔍 Using CoinGecko as oracle for ${marketId}`);
+        oraclePrice = await this.coinGeckoService.getPrice(marketId);
+      }
+
       if (!oraclePrice || oraclePrice <= 0) {
-        console.warn(`⚠️ No valid oracle price available for ${marketId}`);
+        console.warn(
+          `⚠️ No valid oracle price available from ${oracleProvider} for ${marketId}`
+        );
         return placedOrders;
       }
 
@@ -266,6 +281,7 @@ export class OrderManager {
       const priceDifferencePercentage = (priceDifference / oraclePrice) * 100;
 
       console.log(`🔍 Oracle Analysis for ${marketId}:`);
+      console.log(`   Oracle Provider: ${oracleProvider}`);
       console.log(`   Current Price: $${currentPrice}`);
       console.log(`   Oracle Price: $${oraclePrice}`);
       console.log(`   Difference: ${priceDifferencePercentage.toFixed(3)}%`);
@@ -293,7 +309,9 @@ export class OrderManager {
       const primaryPrice = oraclePrice;
       const isCurrentPriceHigher = currentPrice > oraclePrice;
 
-      console.log(`📊 Using Oracle price as primary: $${primaryPrice}`);
+      console.log(
+        `📊 Using ${oracleProvider} Oracle price as primary: $${primaryPrice}`
+      );
 
       // Calculate oracle-based order prices using common config parameters
       const { bidPrices, askPrices } = this.calculateOracleOrderPrices(
@@ -488,7 +506,16 @@ export class OrderManager {
     }
 
     try {
-      const oraclePrice = await this.coinGeckoService.getPrice(marketId);
+      // Get oracle price based on configured provider
+      const oracleProvider = config.oracleStrategy?.provider || "binance";
+      let oraclePrice: number | null = null;
+
+      if (oracleProvider === "binance") {
+        oraclePrice = await this.binancePriceService.getPrice(marketId);
+      } else if (oracleProvider === "coingecko") {
+        oraclePrice = await this.coinGeckoService.getPrice(marketId);
+      }
+
       if (!oraclePrice || oraclePrice <= 0) {
         return {
           shouldTrigger: false,

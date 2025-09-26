@@ -159,6 +159,7 @@ export const oracleStrategyConfig: MarketMakerConfig = {
   oracleStrategy: {
     enabled: true,
     oraclePriceThreshold: 0.5, // Trigger when price differs by 0.5%
+    provider: "binance", // Use Binance futures as oracle
   },
 };
 
@@ -186,6 +187,7 @@ export const conservativeOracleConfig: MarketMakerConfig = {
   oracleStrategy: {
     enabled: true,
     oraclePriceThreshold: 0.3, // Lower threshold (0.3%)
+    provider: "coingecko", // Use CoinGecko as oracle for conservative strategy
   },
 };
 
@@ -213,6 +215,7 @@ export const aggressiveOracleConfig: MarketMakerConfig = {
   oracleStrategy: {
     enabled: true,
     oraclePriceThreshold: 1.0, // Higher threshold (1.0%)
+    provider: "binance", // Use Binance futures for aggressive strategy
   },
 };
 
@@ -223,6 +226,7 @@ export const btcOracleConfig: MarketMakerConfig = {
   oracleStrategy: {
     enabled: true,
     oraclePriceThreshold: 0.4,
+    provider: "binance",
   },
 };
 
@@ -232,6 +236,7 @@ export const ethOracleConfig: MarketMakerConfig = {
   oracleStrategy: {
     enabled: true,
     oraclePriceThreshold: 0.6,
+    provider: "coingecko",
   },
 };
 
@@ -241,6 +246,7 @@ export const solOracleConfig: MarketMakerConfig = {
   oracleStrategy: {
     enabled: true,
     oraclePriceThreshold: 0.8,
+    provider: "binance",
   },
 };
 
@@ -269,8 +275,67 @@ export function getConfigFromEnv(): MarketMakerConfig {
       oraclePriceThreshold: parseFloat(
         process.env.ORACLE_PRICE_THRESHOLD || "0.5"
       ),
+      provider:
+        (process.env.ORACLE_PROVIDER as "binance" | "coingecko") || "binance",
     };
   }
 
   return config;
 }
+
+// Additional oracle configuration examples showcasing different providers
+
+// Binance-only oracle configuration
+export const binanceOracleConfig: MarketMakerConfig = {
+  ...oracleStrategyConfig,
+  marketId: "BTC-USD",
+  oracleStrategy: {
+    enabled: true,
+    oraclePriceThreshold: 0.5,
+    provider: "binance", // Fast, real-time futures prices
+  },
+};
+
+// CoinGecko-only oracle configuration
+export const coinGeckoOracleConfig: MarketMakerConfig = {
+  ...oracleStrategyConfig,
+  marketId: "ETH-USD",
+  oracleStrategy: {
+    enabled: true,
+    oraclePriceThreshold: 0.4,
+    provider: "coingecko", // Aggregated spot prices
+  },
+};
+
+// Mixed configuration showing both fallback options
+export const hybridConfig: MarketMakerConfig = {
+  marketId: "SOL-USD",
+  spread: 0.1,
+  stepSize: 0.01,
+  orderSize: 0.01,
+  maxOrders: 5,
+  priceSteps: 5,
+  refreshInterval: 30000,
+  maxPositionSize: 0.1,
+  orderType: OrderType.LONG_TERM,
+  orderConfig: {
+    goodTilTimeSeconds: 300,
+    batchSize: 5,
+    batchDelay: 100,
+    // Support both fallback providers
+    useBinanceFallback: true,
+    binanceSpread: 0.1,
+    useCoinGeckoFallback: true, // Fallback to CoinGecko if Binance fails
+    coinGeckoSpread: 0.15,
+  },
+  riskParameters: {
+    maxDrawdown: 5,
+    stopLoss: 2,
+    takeProfitRatio: 1.5,
+  },
+  oracleStrategy: {
+    enabled: true,
+    oraclePriceThreshold: 0.6,
+    provider: "binance", // Primary oracle: Binance futures
+  },
+};

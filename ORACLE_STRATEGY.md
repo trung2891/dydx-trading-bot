@@ -2,13 +2,13 @@
 
 ## Overview
 
-The Oracle-based Market Making Strategy is an advanced trading strategy that uses CoinGecko as an external price oracle to make informed trading decisions. When the current market price differs significantly from the oracle price, the strategy switches to oracle-based order placement to capitalize on price discrepancies.
+The Oracle-based Market Making Strategy is an advanced trading strategy that uses Binance futures as an external price oracle to make informed trading decisions. When the current market price differs significantly from the oracle price, the strategy switches to oracle-based order placement to capitalize on price discrepancies.
 
 ## How It Works
 
 ### 1. Price Comparison
 
-- The bot continuously compares the current market price with the CoinGecko oracle price
+- The bot continuously compares the current market price with the Binance futures oracle price
 - It calculates the percentage difference between the two prices
 - When the difference exceeds a configured threshold, the oracle strategy is triggered
 
@@ -175,7 +175,7 @@ node dist/mm/oracle-example.js
 - When price difference ≥ threshold: Oracle strategy is triggered
 - Logs detailed oracle analysis including:
   - Current market price
-  - Oracle price from CoinGecko
+  - Oracle price from Binance futures
   - Price difference percentage
   - Strategy decision
 
@@ -257,14 +257,14 @@ The oracle strategy includes several risk management features:
 
 ## Supported Markets
 
-The oracle strategy supports all markets with CoinGecko price data:
+The oracle strategy supports all markets with Binance futures price data:
 
 - **Major Cryptocurrencies**: BTC, ETH, SOL, AVAX, MATIC, etc.
 - **DeFi Tokens**: UNI, AAVE, COMP, CRV, etc.
 - **Layer 2 Tokens**: ARB, OP, STRK, etc.
 - **Meme Coins**: PEPE, DOGE, SHIB, etc.
 
-See `coingecko-service.ts` for the complete list of supported markets.
+See `binance-price-service.ts` for the complete list of supported markets.
 
 ## Troubleshooting
 
@@ -273,7 +273,7 @@ See `coingecko-service.ts` for the complete list of supported markets.
 1. **Oracle Price Not Available**
 
    - Check internet connection
-   - Verify CoinGecko API status
+   - Verify Binance API status
    - Check market ID mapping
 
 2. **Strategy Not Triggering**
@@ -293,7 +293,7 @@ Enable detailed logging by setting log level to debug in your configuration.
 
 ## Performance Considerations
 
-- **API Rate Limits**: CoinGecko has rate limits (30 requests/minute for free tier)
+- **API Rate Limits**: Binance has rate limits (1200 requests/minute for futures API)
 - **Caching**: Oracle prices are cached for 30 seconds to reduce API calls
 - **Batch Processing**: Oracle orders support batch placement for efficiency
 - **Error Recovery**: Graceful fallback to standard strategy on errors
