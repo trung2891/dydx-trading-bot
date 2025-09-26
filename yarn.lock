@@ -194,10 +194,10 @@
   resolved "https://registry.yarnpkg.com/@noble/hashes/-/hashes-1.8.0.tgz#cee43d801fcef9644b11b8194857695acd5f815a"
   integrity sha512-jCs9ldd7NwzpgXDIf6P3+NrHh9/sD6CQdxHyjQI+h/6rDNo88ypBxxz45UDuZHz9r3tNz7N/VInSVoVdtXEI4A==
 
-"@oraichain/lfg-client-js@^1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@oraichain/lfg-client-js/-/lfg-client-js-1.0.1.tgz#fa5d0c6c03c9ca87527787225e625721bff39d53"
-  integrity sha512-PalmWlt9nOa0FPmvSTa+q4Lqy524NgqS+5VFUkmfN/44jMdIPNglknrmRdIb4O+Qkn2qz9egGdJABx782qvuhQ==
+"@oraichain/lfg-client-js@^1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@oraichain/lfg-client-js/-/lfg-client-js-1.0.2.tgz#d7ab541f454270214e593385d3f0fa1d789a123d"
+  integrity sha512-36sgwh87cvMDc9CEFGA+Jgim/6ubBvKtu1EPSikCP3cehp3jP+VhOVqhZZc9BVCb9suWue9CXQlRrmhPfvw/ww==
   dependencies:
     "@cosmjs/amino" "^0.32.1"
     "@cosmjs/encoding" "^0.32.1"
