@@ -15,7 +15,7 @@ const defaultConfig: MarketMakerConfig = {
   marketId: "BTC-USD",
   spread: 0.001, // 0.1% spread
   stepSize: 0.001, // 0.01% step size
-  orderSize: 0.01, // 0.001 BTC per order
+  orderSize: 0.1, // 0.001 BTC per order
   maxOrders: 2000, // 3 orders per side
   priceSteps: 1000, // 3 price levels
   refreshInterval: 5000, // Refresh every 30 seconds
