@@ -19,23 +19,26 @@ import { OrderBatchWithMarketId } from "@oraichain/lfg-client-js/src/clients/com
 import { Network, OrderSide } from "@oraichain/lfg-client-js";
 import { LocalWallet } from "@oraichain/lfg-client-js";
 import { SubaccountInfo } from "@oraichain/lfg-client-js";
+import { getNetwork } from "../utils";
 
 const MAX_CLIENT_ID = 2 ** 32 - 1;
 
 async function test(): Promise<void> {
   const wallet = await LocalWallet.fromMnemonic(
-    process.env.WASH_TRADE_MNEMONIC!,
-    // process.env.DYDX_TEST_MNEMONIC!,
+    // process.env.WASH_TRADE_MNEMONIC!,
+    process.env.DYDX_TEST_MNEMONIC!,
     "lfg"
   );
   // console.log(wallet);
-  const network = Network.mainnet();
+  // const network = Network.mainnet();
 
-  network.indexerConfig.restEndpoint = "http://65.109.74.254:3002";
-  network.indexerConfig.websocketEndpoint = "http://65.109.74.254:3003";
+  // network.indexerConfig.restEndpoint = "http://65.109.74.254:3002";
+  // network.indexerConfig.websocketEndpoint = "http://65.109.74.254:3003";
 
-  network.validatorConfig.restEndpoint = "http://65.109.74.254:56657";
-  network.validatorConfig.chainId = "testing";
+  // network.validatorConfig.restEndpoint = "http://65.109.74.254:56657";
+  // network.validatorConfig.chainId = "testing";
+
+  const network = getNetwork();
 
   const client = await ValidatorClient.connect(network.validatorConfig);
   // console.log("**Client**");

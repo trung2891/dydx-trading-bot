@@ -17,6 +17,7 @@ import {
   MarketData,
 } from "./types";
 import { sleep, getCurrentTimestamp, isWithinPercentage } from "./utils";
+import { getNetwork } from "../utils";
 
 export class MarketMakerBot {
   private compositeClient!: CompositeClient;
@@ -541,15 +542,16 @@ export class MarketMakerBot {
    * Get default network configuration.
    */
   public static getDefaultNetwork(): Network {
-    const network = Network.mainnet();
-    // Use custom endpoints if provided in samples
-    network.indexerConfig.restEndpoint = process.env.INDEXER_REST_URL!;
-    network.indexerConfig.websocketEndpoint =
-      process.env.INDEXER_WEBSOCKET_URL!;
+    // const network = Network.mainnet();
+    // // Use custom endpoints if provided in samples
+    // network.indexerConfig.restEndpoint = process.env.INDEXER_REST_URL!;
+    // network.indexerConfig.websocketEndpoint =
+    //   process.env.INDEXER_WEBSOCKET_URL!;
 
-    network.validatorConfig.restEndpoint = process.env.REST_URL!;
-    network.validatorConfig.chainId = process.env.CHAIN_ID!;
-    return network;
+    // network.validatorConfig.restEndpoint = process.env.REST_URL!;
+    // network.validatorConfig.chainId = process.env.CHAIN_ID!;
+    // return network;
+    return getNetwork();
   }
 
   /**
